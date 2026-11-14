@@ -44,6 +44,11 @@ export function WalkMode({ route, onClose }: WalkModeProps) {
 
   const image = next.waypoint.image;
   const nextObjective = OBJECTIVES[next.waypoint.id];
+  const rawCaption = next.waypoint.caption ?? "";
+  const caption =
+    rawCaption.length > 0 && rawCaption.length <= 220
+      ? rawCaption
+      : "Surface view · NASA/JPL-Caltech";
 
   return (
     <div className="walk" role="dialog" aria-label="Field walk mode">
@@ -72,7 +77,7 @@ export function WalkMode({ route, onClose }: WalkModeProps) {
         >
           <div className="walk-pov-shade" />
           <div className="walk-pov-caption">
-            {next.waypoint.caption || "Surface view · NASA/JPL-Caltech"}
+            {caption}
           </div>
         </div>
 

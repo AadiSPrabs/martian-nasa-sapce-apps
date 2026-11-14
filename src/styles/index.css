@@ -1738,10 +1738,13 @@ input:focus-visible {
   left: 20px;
   bottom: 18px;
   right: 20px;
+  overflow: hidden;
   color: rgba(255, 255, 255, 0.62);
   font-family: var(--font-mono);
   font-size: 8px;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .walk-panel {
