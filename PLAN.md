@@ -2,7 +2,7 @@
 
 **Build plan v2 · 14 Nov 2026**
 
-> **Build status:** baseline implemented and production build verified — Cesium Mars globe, NASA Deep Star Maps sky, real-time Mars24 sun/terminator, MOLA relief, sector hover/search, editable Gale A* route builder, safety envelope, Walk mode, and the Orbital UI. The sections below are the design reference and record the decisions that shaped it; 3D terrain remains deferred (§8.9).
+> **Build status:** baseline implemented and production build verified — Cesium Mars globe, sparse starfield, real-time Mars24 sun/terminator with even-light toggle, MOLA relief, sector hover/search, editable Gale A* route builder, safety envelope, Walk mode, and the Orbital UI. The sections below are the design reference and record the decisions that shaped it; 3D terrain remains deferred (§8.9).
 
 ---
 
@@ -162,7 +162,7 @@ Default: a Mars globe you can spin, search, and descend into. Planning: a real f
 
 **Could ship**
 
-- Milky Way skybox (NASA SVS Deep Star Maps 2020).
+- Sparse procedural starfield (no cubemap); see §4.4.
 - Measure tool.
 - Day/night terminator with Mars subsolar point.
 - Viewshed/comms line-of-sight.
@@ -190,7 +190,7 @@ Verified in the Cesium 1.147 docs:
 - `new Cesium.Globe(ellipsoid)` accepts a custom ellipsoid.
 - `Viewer` can be constructed with `globe`, `terrainProvider`, `skyBox`, and `baseLayer: false`.
 - `SingleTileImageryProvider` can drape a global 8K image over `Rectangle.fromDegrees(-180, -90, 180, 90)`; in the build, 4K base + streamed LOD proved more reliable.
-- The build uses NASA SVS **Deep Star Maps 2020** as a six-face cubemap with a real Milky Way, plus a Mars24-driven directional light and screen-space atmosphere rim. The original Tycho-2 star box was replaced.
+- The build uses a deterministic sparse starfield (no cubemap seams), plus a Mars24-driven directional light, a study-light toggle, and a screen-space atmosphere rim. The original Tycho-2 star box was replaced.
 - Entity picking, `DistanceDisplayCondition`, `LabelGraphics`, and `camera.flyTo` cover the sector interactions.
 
 This removes the biggest risk: no custom WebGL globe, no projection mismatch, no reinvented camera controls.
@@ -246,8 +246,8 @@ Notes:
 
 ### 4.4 Stars
 
-- Default: NASA SVS **Deep Star Maps 2020** — 4K celestial cubemap with the Milky Way, built from Hipparcos-2/Tycho-2/Gaia DR2. Credit NASA/Goddard SVS.
-- The Mars24 model (Allison & McEwen 2000) computes the subsolar point for the current UTC instant; the scene light and sun sprite follow it, with a terminator and a thin projected atmosphere rim.
+- Default: deterministic sparse starfield — 170 faint points and 7 bright stars, no cubemap or seams.
+- The Mars24 model (Allison & McEwen 2000) computes the subsolar point for the current UTC instant; the scene light and sun sprite follow it, with a terminator and a thin projected atmosphere rim. A Sun toggle switches to even lighting.
 - Do not rotate the star field with the camera; it is inertial. The camera orbits Mars, stars stay fixed.
 
 ### 4.5 Lighting and atmosphere
@@ -425,8 +425,8 @@ A nominal 6 h EVA is ~0.16 mSv; a 3× solar-event what-if is ~0.47 mSv and excee
 | Nomenclature | `outreach_nomenclature` | Normalize lon, filter levels, index | ≤ 300 KB |
 | Landing sites | `*_waypoints` | Dedupe, attach mission metadata | ≤ 30 KB |
 | Traverses | `curiosity_path`, `Perseverance_Traverse_Path`, `opportunity_path2`, `spirit_path2` | Simplify to ~2k points each | ≤ 300 KB |
-| Star field | Cesium Tycho-2 skybox | Built-in | 0 |
-| Optional Milky Way | NASA SVS Deep Star Maps 2020 | EXR→cube faces | ≤ 8 MB |
+| Star field | Deterministic sparse points | Generated at runtime | 0 |
+| Milky Way skybox | Rejected in build | cubemap seams | — |
 
 ### 7.2 Gale field-atlas data
 
@@ -476,7 +476,7 @@ A nominal 6 h EVA is ~0.16 mSv; a 3× solar-event what-if is ~0.47 mSv and excee
 - REMS: NASA/JPL-Caltech/CAB.
 - Geologic map: USGS Astrogeology.
 - Regions/nomenclature/landing sites: NASA/JPL Mars Trek.
-- Star map (if used): NASA/Goddard SVS.
+- Mars24 (Allison & McEwen 2000) for the subsolar point. No external star-map asset is shipped.
 - Globe engine: CesiumJS (Apache 2.0).
 
 ---
@@ -687,7 +687,7 @@ Google Earth's Mars mode, refined: a dark, quiet instrument around a lit planet,
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-![Orbital UI study — 1600×1000. Concept only: the built app uses Cesium for the live globe and its Tycho-2 star field; this image uses a pre-rendered Viking texture and an illustrative starfield.](docs/globe-concept.jpg)
+![Orbital UI study — 1600×1000. Concept only: the built app uses Cesium for the live globe, a deterministic sparse starfield, and Mars24 lighting; this image uses a pre-rendered Viking texture and an illustrative starfield.](docs/globe-concept.jpg)
 
 *Visual direction study, not a screenshot of the build. It fixes the layout grammar: 56 px ribbon, search at left, sector card at left, compass/zoom bottom-right, breadcrumb bottom-centre. The real globe will be interactive, lit, and georeferenced.*
 
@@ -906,7 +906,7 @@ If the globe slips, cut the Jezero POV and 2D/3D before cutting sectors or the G
 3. **Planning surface:** Leaflet field atlas (recommended) vs Cesium 2D. Leaflet is safer for precise routing; Cesium is more seamless. A 1-hour spike can decide, but the plan assumes Leaflet.
 4. **Design:** Orbital dark (required by Google Earth reference) vs a light field-sheet plan mode. I recommend dark chrome throughout, with a print-only light brief.
 5. **Data depth:** Gale full EVA + recon elsewhere (recommended) vs attempting a second full site. Jezero has Perseverance POV but no Mars Trek basemap or 1 m DEM; a second full site would need a separate HiRISE/DEM pipeline and probably does not fit the deadline.
-6. **Star field:** Cesium's real Tycho-2 skybox (recommended) vs adding a NASA SVS Deep Star Maps 2020 Milky Way cube map as a stretch. The default already satisfies "proper stars"; the Milky Way is a visual upgrade.
+6. **Star field:** Cesium's real Tycho-2 skybox was replaced by a sparse deterministic field after the skybox seam test. A Milky Way cubemap was rejected.
 7. **Deadline:** confirm 15 Nov 2026, 23:59 IST.
 
 ---
@@ -919,6 +919,6 @@ If the globe slips, cut the Jezero POV and 2D/3D before cutting sectors or the G
 - USGS–NASA Planetary Geologic Mapping: `astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars`
 - NASA MSL REMS weather API: `mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json`
 - NASA MSL raw images API: `mars.nasa.gov/rss/api/?feed=raw_images&category=msl&feedtype=json`
-- NASA SVS Deep Star Maps 2020: `svs.gsfc.nasa.gov/4851`
+- NASA GISS Mars24: `giss.nasa.gov/tools/mars24/help/algorithm.html`
 - NASA/JPL Curiosity and major-feature waypoint pages on Mars Trek
 - Hassler et al., "Mars' Surface Radiation Environment Measured with the Mars Science Laboratory's Curiosity Rover," *Science* (2014), for the ~0.64 mSv/day RAD baseline.

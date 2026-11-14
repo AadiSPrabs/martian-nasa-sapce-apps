@@ -6,6 +6,7 @@ import {
   Route,
   Ruler,
   Share2,
+  Sun,
   Tag,
 } from "lucide-react";
 
@@ -18,6 +19,8 @@ type TopRibbonProps = {
   onLayers?: () => void;
   onLabels?: () => void;
   labelsOn?: boolean;
+  onSun?: () => void;
+  sunOn?: boolean;
   onShare?: () => void;
   onMissions?: () => void;
 };
@@ -28,6 +31,8 @@ export function TopRibbon({
   onLayers,
   onLabels,
   labelsOn,
+  onSun,
+  sunOn,
   onShare,
   onMissions,
 }: TopRibbonProps) {
@@ -59,6 +64,15 @@ export function TopRibbon({
         <button className={`tool ${labelsOn ? "active" : ""}`} type="button" onClick={onLabels}>
           <Tag size={15} strokeWidth={1.6} />
           <span>Labels</span>
+        </button>
+        <button
+          className={`tool ${sunOn ? "active" : ""}`}
+          type="button"
+          onClick={onSun}
+          title="Real sun lighting — turn off for even lighting"
+        >
+          <Sun size={15} strokeWidth={1.6} />
+          <span>Sun</span>
         </button>
         <button
           className="tool"

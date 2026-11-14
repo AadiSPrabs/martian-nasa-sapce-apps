@@ -19,6 +19,7 @@ export default function App() {
   const [atlasOpen, setAtlasOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
   const [labelsOn, setLabelsOn] = useState(true);
+  const [sunOn, setSunOn] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const [sun, setSun] = useState(() => getMarsSun());
   const [viewer, setViewer] = useState<Viewer | null>(null);
@@ -39,6 +40,7 @@ export default function App() {
           viewerRef.current = v;
           setViewer(v);
         }}
+        sunOn={sunOn}
       />
       <TopRibbon
         onSearchSelect={(place) => {
@@ -54,6 +56,8 @@ export default function App() {
           setLabelsOn(next);
           if (viewerRef.current) setLabelsVisible(viewerRef.current, next);
         }}
+        sunOn={sunOn}
+        onSun={() => setSunOn((value) => !value)}
         onMissions={() => setAtlasOpen(true)}
         onShare={() => {
           navigator.clipboard
@@ -102,9 +106,13 @@ export default function App() {
       </div>
 
       <div className="sun-readout">
-        SUN {sun.lonEast.toFixed(0)}°E · Ls {sun.ls.toFixed(0)}° · MTC{" "}
-        {String(Math.floor(sun.mstHours)).padStart(2, "0")}:
-        {String(Math.floor((sun.mstHours % 1) * 60)).padStart(2, "0")}
+        {sunOn
+          ? `SUN ${sun.lonEast.toFixed(0)}°E · Ls ${sun.ls.toFixed(0)}° · MTC ${String(
+              Math.floor(sun.mstHours),
+            ).padStart(2, "0")}:${String(
+              Math.floor((sun.mstHours % 1) * 60),
+            ).padStart(2, "0")}`
+          : "EVEN LIGHTING · SUN OFF"}
       </div>
 
       <div className="credits">

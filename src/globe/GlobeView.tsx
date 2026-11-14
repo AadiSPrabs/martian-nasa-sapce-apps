@@ -19,6 +19,7 @@ type GlobeViewProps = {
   onHover?: (hover: HoverInfo | null) => void;
   onSelect?: (place: GlobePlace) => void;
   onViewer?: (viewer: Cesium.Viewer | null) => void;
+  sunOn?: boolean;
 };
 
 export function GlobeView({
@@ -26,10 +27,14 @@ export function GlobeView({
   onHover,
   onSelect,
   onViewer,
+  sunOn = true,
 }: GlobeViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const atmosphereRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Cesium.Viewer | null>(null);
+  const sunOnRef = useRef(sunOn);
+  const updateAtmosphereRef = useRef<(() => void) | null>(null);
+  sunOnRef.current = sunOn;
   const readyRef = useRef(onReady);
   const hoverRef = useRef(onHover);
   const selectRef = useRef(onSelect);
@@ -57,6 +62,11 @@ export function GlobeView({
       infoBox: false,
       selectionIndicator: false,
       requestRenderMode: false,
+      contextOptions: {
+        webgl: {
+          antialias: true,
+        },
+      },
     });
 
     const credit = viewer.cesiumWidget.creditContainer as HTMLElement | undefined;
@@ -88,7 +98,8 @@ export function GlobeView({
     if (viewer.scene.sun) viewer.scene.sun.show = false;
     if (viewer.scene.moon) viewer.scene.moon.show = false;
     viewer.scene.requestRenderMode = false;
-    viewer.scene.globe.maximumScreenSpaceError = 1.5;
+    viewer.scene.globe.maximumScreenSpaceError = 0.6;
+    viewer.scene.globe.tileCacheSize = 250;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 300_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30_000_000;
 
@@ -97,17 +108,53 @@ export function GlobeView({
     // ellipsoid, so bind the camera to Mars explicitly.
     (viewer.camera as unknown as { _ellipsoid: Cesium.Ellipsoid })._ellipsoid = MARS;
 
-    viewer.scene.skyBox = new Cesium.SkyBox({
-      sources: {
-        positiveX: "/data/skybox/px.jpg",
-        negativeX: "/data/skybox/nx.jpg",
-        positiveY: "/data/skybox/py.jpg",
-        negativeY: "/data/skybox/ny.jpg",
-        positiveZ: "/data/skybox/pz.jpg",
-        negativeZ: "/data/skybox/nz.jpg",
-      },
-    });
-    viewer.scene.skyBox.show = true;
+    if (viewer.scene.skyBox) viewer.scene.skyBox.show = false;
+
+    // A sparse generated starfield. No cubemap seams, just a few distant lights.
+    const stars = new Cesium.PointPrimitiveCollection();
+    let seed = 0x6d617273;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0x100000000;
+    };
+    const starDirections: Cesium.Cartesian3[] = [];
+    for (let i = 0; i < 170; i++) {
+      const z = rand() * 2 - 1;
+      const phi = rand() * Cesium.Math.TWO_PI;
+      const r = Math.sqrt(1 - z * z);
+      const dir = new Cesium.Cartesian3(r * Math.cos(phi), r * Math.sin(phi), z);
+      starDirections.push(dir);
+      const warm = rand();
+      const color =
+        warm > 0.82
+          ? Cesium.Color.fromCssColorString("#FFE2BD")
+          : warm < 0.16
+            ? Cesium.Color.fromCssColorString("#CFE3FF")
+            : Cesium.Color.WHITE;
+      stars.add({
+        position: Cesium.Cartesian3.multiplyByScalar(
+          dir,
+          1.4e8,
+          new Cesium.Cartesian3(),
+        ),
+        pixelSize: 0.8 + rand() * 1.5,
+        color: color.withAlpha(0.55 + rand() * 0.4),
+      });
+    }
+    viewer.scene.primitives.add(stars);
+
+    for (let i = 0; i < 7; i++) {
+      const dir = starDirections[i * 17];
+      stars.add({
+        position: Cesium.Cartesian3.multiplyByScalar(
+          dir,
+          1.4e8,
+          new Cesium.Cartesian3(),
+        ),
+        pixelSize: 3.4,
+        color: Cesium.Color.WHITE.withAlpha(0.95),
+      });
+    }
 
     // Real-time Mars sun. Mars24 gives the subsolar point; the directional
     // light and the visible sun sprite both follow it.
@@ -182,7 +229,7 @@ export function GlobeView({
       url: exportUrl("Mars_Viking_MDIM21_ClrMosaic_global_232m"),
       tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
       rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
-      minimumLevel: 5,
+      minimumLevel: 6,
       maximumLevel: 9,
       tileWidth: 512,
       tileHeight: 512,
@@ -195,7 +242,7 @@ export function GlobeView({
       url: exportUrl("curiosity_hirise_mosaic"),
       tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
       rectangle: Cesium.Rectangle.fromDegrees(137.12, -4.93, 137.73, -4.25),
-      minimumLevel: 8,
+      minimumLevel: 9,
       maximumLevel: 17,
       tileWidth: 512,
       tileHeight: 512,
@@ -211,6 +258,60 @@ export function GlobeView({
         pitch: -Cesium.Math.PI_OVER_TWO,
         roll: 0,
       },
+    });
+
+    // A few brighter "lights" in the sky around the opening view, still fixed
+    // in the star frame and occluded by the globe.
+    const camDir = Cesium.Cartesian3.normalize(
+      viewer.camera.position,
+      new Cesium.Cartesian3(),
+    );
+    const offsets = [
+      [0.31, 0.2],
+      [0.37, 1.6],
+      [0.43, 3.2],
+      [0.35, 4.7],
+    ];
+    const forward = Cesium.Cartesian3.negate(camDir, new Cesium.Cartesian3());
+    offsets.forEach(([angle, phase], index) => {
+      const dir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.add(
+          Cesium.Cartesian3.multiplyByScalar(
+            forward,
+            Math.cos(angle),
+            new Cesium.Cartesian3(),
+          ),
+          Cesium.Cartesian3.add(
+            Cesium.Cartesian3.multiplyByScalar(
+              viewer.camera.right,
+              Math.sin(angle) * Math.cos(phase),
+              new Cesium.Cartesian3(),
+            ),
+            Cesium.Cartesian3.multiplyByScalar(
+              viewer.camera.up,
+              Math.sin(angle) * Math.sin(phase),
+              new Cesium.Cartesian3(),
+            ),
+            new Cesium.Cartesian3(),
+          ),
+          new Cesium.Cartesian3(),
+        ),
+        new Cesium.Cartesian3(),
+      );
+      stars.add({
+        position: Cesium.Cartesian3.multiplyByScalar(
+          dir,
+          1.4e8,
+          new Cesium.Cartesian3(),
+        ),
+        pixelSize: 4.4 + index * 0.4,
+        color:
+          index % 3 === 0
+            ? Cesium.Color.fromCssColorString("#CFE3FF")
+            : index % 3 === 1
+              ? Cesium.Color.fromCssColorString("#FFE2BD")
+              : Cesium.Color.WHITE,
+      });
     });
 
     // Only Gale has submeter imagery. Elsewhere, stop before the 232 m/px
@@ -234,6 +335,10 @@ export function GlobeView({
     const updateAtmosphere = () => {
       const element = atmosphereRef.current;
       if (!element) return;
+      if (!sunOnRef.current) {
+        element.style.opacity = "0";
+        return;
+      }
       const center = Cesium.SceneTransforms.worldToWindowCoordinates(
         viewer.scene,
         Cesium.Cartesian3.ZERO,
@@ -268,6 +373,7 @@ export function GlobeView({
       element.style.opacity = "1";
     };
     viewer.camera.changed.addEventListener(updateAtmosphere);
+    updateAtmosphereRef.current = updateAtmosphere;
     updateAtmosphere();
 
     viewer.scene.requestRender();
@@ -333,12 +439,28 @@ export function GlobeView({
       sunSettleTimers.forEach((timer) => window.clearTimeout(timer));
       viewer.camera.changed.removeEventListener(updateZoomLimit);
       viewer.camera.changed.removeEventListener(updateAtmosphere);
+      updateAtmosphereRef.current = null;
       sectorCleanup?.();
       viewerRef.current = null;
       viewerCallbackRef.current?.(null);
       if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    viewer.scene.globe.enableLighting = sunOn;
+    viewer.scene.globe.dynamicAtmosphereLighting = sunOn;
+    const sun = viewer.entities.getById("mars-sun");
+    if (sun) sun.show = sunOn;
+    if (!sunOn) {
+      if (atmosphereRef.current) atmosphereRef.current.style.opacity = "0";
+    } else {
+      updateAtmosphereRef.current?.();
+    }
+    viewer.scene.requestRender();
+  }, [sunOn]);
 
   return (
     <>
