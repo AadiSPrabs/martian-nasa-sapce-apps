@@ -421,14 +421,45 @@ export async function mountSectors(
     const planet = height > 6_000_000;
     const local = height <= 2_500_000;
     const compact = window.innerWidth < 640;
+    const margin = compact ? 44 : 76;
+
+    const onScreen = (entity: Cesium.Entity) => {
+      const position = entity.position?.getValue(viewer.clock.currentTime);
+      if (!position) return false;
+      const screen = Cesium.SceneTransforms.worldToWindowCoordinates(
+        viewer.scene,
+        position,
+      );
+      if (!screen) return false;
+      const w = viewer.scene.canvas.clientWidth;
+      const h = viewer.scene.canvas.clientHeight;
+      return (
+        screen.x > margin &&
+        screen.x < w - margin &&
+        screen.y > margin + 30 &&
+        screen.y < h - margin
+      );
+    };
+
     for (const { entity, tier1, mobile } of regionLabels) {
-      setLabelShow(entity, labelsEnabled && (planet ? (compact ? mobile : tier1) : !local));
+      setLabelShow(
+        entity,
+        labelsEnabled &&
+          onScreen(entity) &&
+          (planet ? (compact ? mobile : tier1) : !local),
+      );
     }
     for (const entity of featureLabels) {
-      setLabelShow(entity, labelsEnabled && !compact && height <= 6_000_000);
+      setLabelShow(
+        entity,
+        labelsEnabled && onScreen(entity) && !compact && height <= 6_000_000,
+      );
     }
     for (const entity of landingLabels) {
-      setLabelShow(entity, labelsEnabled && !compact && height <= 5_000_000);
+      setLabelShow(
+        entity,
+        labelsEnabled && onScreen(entity) && !compact && height <= 5_000_000,
+      );
     }
     viewer.scene.requestRender();
   };

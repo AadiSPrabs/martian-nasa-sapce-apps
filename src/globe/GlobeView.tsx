@@ -3,6 +3,7 @@ import * as Cesium from "cesium";
 
 import { mountSectors } from "./sectors";
 import type { GlobePlace, HoverInfo } from "./types";
+import { getMarsSun } from "./mars24";
 
 const MARS = Cesium.Ellipsoid.MARS;
 Cesium.Ellipsoid.default = MARS;
@@ -27,6 +28,7 @@ export function GlobeView({
   onViewer,
 }: GlobeViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const atmosphereRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Cesium.Viewer | null>(null);
   const readyRef = useRef(onReady);
   const hoverRef = useRef(onHover);
@@ -62,8 +64,25 @@ export function GlobeView({
 
     viewer.scene.backgroundColor = Cesium.Color.BLACK;
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#2a1a14");
-    viewer.scene.globe.enableLighting = false;
-    viewer.scene.globe.showGroundAtmosphere = false;
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.dynamicAtmosphereLighting = true;
+    viewer.scene.globe.showGroundAtmosphere = true;
+    viewer.scene.globe.atmosphereLightIntensity = 3.0;
+    viewer.scene.globe.atmosphereMieCoefficient = new Cesium.Cartesian3(
+      9e-6,
+      7e-6,
+      5e-6,
+    );
+    viewer.scene.globe.atmosphereRayleighCoefficient = new Cesium.Cartesian3(
+      4.2e-6,
+      3.0e-6,
+      2.0e-6,
+    );
+    viewer.scene.globe.atmosphereMieScaleHeight = 11_000;
+    viewer.scene.globe.atmosphereRayleighScaleHeight = 11_000;
+    viewer.scene.globe.atmosphereHueShift = 0.02;
+    viewer.scene.globe.atmosphereSaturationShift = -0.1;
+    viewer.scene.globe.atmosphereBrightnessShift = 0.04;
     viewer.scene.fog.enabled = false;
     if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = false;
     if (viewer.scene.sun) viewer.scene.sun.show = false;
@@ -80,18 +99,77 @@ export function GlobeView({
 
     viewer.scene.skyBox = new Cesium.SkyBox({
       sources: {
-        positiveX: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_px.jpg"),
-        negativeX: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_mx.jpg"),
-        positiveY: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_py.jpg"),
-        negativeY: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_my.jpg"),
-        positiveZ: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_pz.jpg"),
-        negativeZ: Cesium.buildModuleUrl("Assets/Textures/SkyBox/tycho2t3_80_mz.jpg"),
+        positiveX: "/data/skybox/px.jpg",
+        negativeX: "/data/skybox/nx.jpg",
+        positiveY: "/data/skybox/py.jpg",
+        negativeY: "/data/skybox/ny.jpg",
+        positiveZ: "/data/skybox/pz.jpg",
+        negativeZ: "/data/skybox/nz.jpg",
       },
     });
     viewer.scene.skyBox.show = true;
 
+    // Real-time Mars sun. Mars24 gives the subsolar point; the directional
+    // light and the visible sun sprite both follow it.
+    const marsSun = getMarsSun();
+    const sunDirection = Cesium.Cartesian3.normalize(
+      Cesium.Cartesian3.fromDegrees(marsSun.lonEast, marsSun.lat, 0, MARS),
+      new Cesium.Cartesian3(),
+    );
+    const sunEntity = viewer.entities.add({
+      id: "mars-sun",
+      position: Cesium.Cartesian3.multiplyByScalar(
+        sunDirection,
+        1.0e8,
+        new Cesium.Cartesian3(),
+      ),
+      billboard: {
+        image: "/data/sun.png",
+        width: 72,
+        height: 72,
+        disableDepthTestDistance: 0,
+        scaleByDistance: new Cesium.NearFarScalar(1.0e7, 2.2, 1.0e8, 1.0),
+      },
+    });
+
+    const sunLight = new Cesium.DirectionalLight({
+      direction: Cesium.Cartesian3.negate(sunDirection, new Cesium.Cartesian3()),
+      intensity: 1.0,
+    });
+    viewer.scene.light = sunLight;
+
+    const applySun = () => {
+      if (viewer.isDestroyed()) return;
+      const s = getMarsSun();
+      const dir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.fromDegrees(s.lonEast, s.lat, 0, MARS),
+        new Cesium.Cartesian3(),
+      );
+      sunEntity.position = new Cesium.ConstantPositionProperty(
+        Cesium.Cartesian3.multiplyByScalar(
+          dir,
+          1.0e8,
+          new Cesium.Cartesian3(),
+        ),
+      );
+      sunLight.direction = Cesium.Cartesian3.negate(
+        dir,
+        new Cesium.Cartesian3(),
+      );
+      viewer.scene.requestRender();
+    };
+    applySun();
+    // Cesium can defer the first custom-light uniform update; re-apply once
+    // the scene has completed its first frames.
+    const sunSettleTimers = [
+      window.setTimeout(applySun, 300),
+      window.setTimeout(applySun, 1500),
+    ];
+
+    viewer.scene.postProcessStages.fxaa.enabled = true;
+
     const imagery = new Cesium.SingleTileImageryProvider({
-      url: "/data/globe/mars-viking-4k.jpg",
+      url: "/data/globe/mars-viking-relief-4k.jpg",
       rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
       tileWidth: 4096,
       tileHeight: 2048,
@@ -125,8 +203,9 @@ export function GlobeView({
     });
     viewer.imageryLayers.addImageryProvider(galeDetail);
 
+    const viewLon = ((marsSun.lonEast + 48 + 540) % 360) - 180;
     viewer.camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(-70, 5, 3.1 * 3_396_190, MARS),
+      destination: Cesium.Cartesian3.fromDegrees(viewLon, 5, 3.1 * 3_396_190, MARS),
       orientation: {
         heading: 0,
         pitch: -Cesium.Math.PI_OVER_TWO,
@@ -151,6 +230,45 @@ export function GlobeView({
     };
     viewer.camera.changed.addEventListener(updateZoomLimit);
     updateZoomLimit();
+
+    const updateAtmosphere = () => {
+      const element = atmosphereRef.current;
+      if (!element) return;
+      const center = Cesium.SceneTransforms.worldToWindowCoordinates(
+        viewer.scene,
+        Cesium.Cartesian3.ZERO,
+      );
+      const edgePoint = Cesium.Cartesian3.multiplyByScalar(
+        viewer.camera.right,
+        MARS.maximumRadius,
+        new Cesium.Cartesian3(),
+      );
+      const edge = Cesium.SceneTransforms.worldToWindowCoordinates(
+        viewer.scene,
+        edgePoint,
+      );
+      if (!center || !edge) {
+        element.style.opacity = "0";
+        return;
+      }
+      const radius = Cesium.Cartesian2.distance(center, edge);
+      const maxDimension = Math.max(
+        viewer.scene.canvas.clientWidth,
+        viewer.scene.canvas.clientHeight,
+      );
+      if (radius < 30 || radius > maxDimension * 1.2) {
+        element.style.opacity = "0";
+        return;
+      }
+      const size = radius * 2.25;
+      element.style.width = `${size}px`;
+      element.style.height = `${size}px`;
+      element.style.left = `${center.x - size / 2}px`;
+      element.style.top = `${center.y - size / 2}px`;
+      element.style.opacity = "1";
+    };
+    viewer.camera.changed.addEventListener(updateAtmosphere);
+    updateAtmosphere();
 
     viewer.scene.requestRender();
 
@@ -205,11 +323,16 @@ export function GlobeView({
     }, 1400);
     const renderTimer = window.setTimeout(() => viewer.scene.requestRender(), 400);
 
+    const sunTimer = window.setInterval(applySun, 60_000);
+
     return () => {
       disposed = true;
       window.clearTimeout(readyTimer);
       window.clearTimeout(renderTimer);
+      window.clearInterval(sunTimer);
+      sunSettleTimers.forEach((timer) => window.clearTimeout(timer));
       viewer.camera.changed.removeEventListener(updateZoomLimit);
+      viewer.camera.changed.removeEventListener(updateAtmosphere);
       sectorCleanup?.();
       viewerRef.current = null;
       viewerCallbackRef.current?.(null);
@@ -217,5 +340,10 @@ export function GlobeView({
     };
   }, []);
 
-  return <div ref={containerRef} className="globe-canvas" />;
+  return (
+    <>
+      <div ref={containerRef} className="globe-canvas" />
+      <div ref={atmosphereRef} className="globe-atmosphere" />
+    </>
+  );
 }

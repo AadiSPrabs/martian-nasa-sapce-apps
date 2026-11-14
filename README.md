@@ -6,15 +6,17 @@ A Google Earth–style Mars globe with a real field atlas for planning a human s
 
 ## What it does
 
-**Orbit.** A 3D Mars globe with real Tycho-2 stars, named regions, MC quadrangles, major features, landing sites, and rover traverses. Hover a region to reveal its boundary; click to fly in. Search any of 1,794 named features, 34 regions, 30 quadrangles, or 8 landing sites.
+**Orbit.** A 3D Mars globe with NASA's real Deep Star Maps 2020 sky (Milky Way + 1.7 billion catalog stars), named regions, MC quadrangles, major features, landing sites, and rover traverses. Hover a region to reveal its boundary; click to fly in. Search any of 1,794 named features, 34 regions, 30 quadrangles, or 8 landing sites.
 
-The globe uses three imagery levels: a sharpened 4K base, streamed 232 m/px Mars Trek tiles at regional zoom, and true HiRISE detail over Gale. Curiosity's traverse is on by default and resolves as you descend into the crater. Outside Gale, zoom is capped at 300 km because the global source is only 232 m/px; inside Gale it goes to 2.5 km.
+The globe uses three imagery levels: a sharpened, MOLA-relief-baked 4K base, streamed 232 m/px Mars Trek tiles at regional zoom, and true HiRISE detail over Gale. Curiosity's traverse is on by default and resolves as you descend into the crater. Outside Gale, zoom is capped at 300 km because the global source is only 232 m/px; inside Gale it goes to 2.5 km.
+
+Lighting follows the real Mars sun. A Mars24 solar-position model drives the directional light and terminator from the current UTC instant; the HUD shows the subsolar longitude, solar longitude, and Mars Coordinated Time. A thin screen-space atmosphere rim and a subtle grade complete the orbital look.
 
 **Understand.** Each place opens a field card with real NASA imagery, coordinates, data resolution, and a short description. Feature cards use the Mars Trek gazetteer content; landing-site cards identify the mission.
 
-**Plan.** The Gale Crater field atlas combines HiRISE optical imagery, a 1 m DEM, hillshade, slope classes, and USGS geology. Four route plans (Full science, Ridge line, Direct, Rover relay) recompute distance, climb, walk time, radiation dose, and the safety envelope from the DEM. The route itself is an A* least-cost path on a ~24 m navigation grid with a 25° slope no-go.
+**Plan.** The Gale Crater field atlas combines HiRISE optical imagery, a 1 m DEM, hillshade, slope classes, and USGS geology. It is a **route builder**, not a fixed demo: set a start or target by clicking the map, drop field pins, add catalog science stops, and reorder or remove them. Every edit re-runs A* on a ~24 m navigation grid with a 25° slope no-go and recomputes distance, climb, walk time, radiation dose, turn-back, and the safety envelope.
 
-The plan explicitly models **suit load** (light/standard/heavy), **space weather** (nominal or solar particle event ×3 dose), **thermal window**, and a computed **turn-back point**. A **Data & methods** sheet lists every layer's source, resolution, and measured/modelled status.
+Four presets (Full science, Ridge line, Direct, Rover relay) are starting templates. The plan explicitly models **suit load** (light/standard/heavy), **space weather** (nominal or solar particle event ×3 dose), **thermal window**, and a computed **turn-back point**. **Export brief** writes the current EVA plan as a text briefing. A **Data & methods** sheet lists every layer's source, resolution, and measured/modelled status.
 
 ![Data and methods](docs/data.jpg)
 
@@ -49,6 +51,9 @@ Requirements: Node 20+ and pnpm 11+.
 | Layer | Source | Resolution |
 |---|---|---|
 | Global Mars basemap | NASA/JPL Mars Trek — Viking MDIM21 colour mosaic | 232 m/px; sharpened 4K static |
+| Relief shading | NASA/JPL/USGS MOLA/HRSC blended shade | 200 m/px, baked into the 4K base |
+| Sky | NASA/Goddard SVS Deep Star Maps 2020 | 4K celestial map, cubemap |
+| Sun position | NASA GISS Mars24 (Allison & McEwen 2000) | real-time subsolar point |
 | Regional globe LOD | Mars Trek `exportImage` tiles | 512 px, levels 5–9 |
 | Gale globe + atlas | NASA/JPL/UArizona HiRISE mosaic via Mars Trek | native HiRISE, streamed |
 | Gale terrain | NASA/JPL/USGS Gale DEM via Mars Trek | ~5.9 m/px exported grid |
@@ -68,16 +73,18 @@ node scripts/fetch-globe.mjs
 node scripts/fetch-gale.mjs
 python scripts/process-gale-dem.py
 python scripts/sharpen-globe.py
+python scripts/bake-relief.py
 ```
 
-`process-gale-dem.py` and `sharpen-globe.py` need Python 3 with `numpy` and `Pillow`.
+`process-gale-dem.py`, `sharpen-globe.py`, and `bake-relief.py` need Python 3 with `numpy` and `Pillow`.
 
 ## How it works
 
 - **CesiumJS** handles the globe. `Cesium.Ellipsoid.MARS` is the same EPSG:104905 ellipsoid used by Mars Trek. Cesium's camera is created with WGS84, so the app binds the camera's internal ellipsoid to Mars; without that, close views recurse inside the Earth ellipsoid.
 - **Sector hit-testing** is done in JavaScript: the cursor ray is intersected with the globe, then tested against the real region polygons. This avoids relying on Cesium polygon fill/pick behaviour on a custom ellipsoid. Region outlines render as Cesium polygon outlines only while hovered or selected.
 - **Globe LOD** uses a 4K static base, 512 px `exportImage` tiles from Mars Trek at levels 5–9, and a Gale HiRISE layer from level 8. The zoom controller tightens the minimum altitude over Gale and blocks over-zoom elsewhere.
-- **The field atlas** is Leaflet with `L.CRS.EPSG4326`, a HiRISE image overlay, DEM-derived hillshade/slope, and a custom route strip.
+- **Sky and sun** use six cubemap faces generated from NASA's Deep Star Maps 2020; the Mars24 algorithm drives a directional light and a sun sprite from the live subsolar point, with a delayed re-apply to beat Cesium's first-frame light uniform. A screen-space atmosphere rim is scaled from the projected globe radius.
+- **The field atlas** is Leaflet with `L.CRS.EPSG4326`, a HiRISE image overlay, DEM-derived hillshade/slope, and a custom route strip. The planner edits a `WaypointData[]` and sends it through the same A* pipeline on every change.
 - **Routing** is A* on a ~24 m grid built from the 1 m DEM. Slope cost rises quadratically above 10°, cells above 25° are blocked, and the path is sampled back onto the DEM for distance, climb, slope, and walk time.
 - **Route metrics** use Mars radius 3,389.5 km for distance, the exported DEM for elevation and slope, a Tobler-style suit-speed model, a 10 min/hour rest allowance, and a 0.026 mSv/hour radiation planning rate derived from the MSL RAD surface baseline.
 - **The safety envelope** is a planning model, not a flight rule: 6 h EVA, 0.25 mSv per EVA mission rule, 25° slope no-go, and a 09:00–16:00 LMST thermal window. It computes a turn-back distance, a suit-load speed factor, and a solar-event dose scenario.
@@ -86,7 +93,7 @@ python scripts/sharpen-globe.py
 
 | Brief ask | Implementation |
 |---|---|
-| A map, tool, or interface for a surface exploration mission | Gale field atlas plus full-screen Walk mode |
+| A map, tool, or interface for a surface exploration mission | Editable Gale route builder + full-screen Walk mode |
 | Science goals and a chosen location | Hematite Ridge, Gale Crater: ridge layering, hematite sample, dune-margin survey |
 | At least three kinds of data | Four measured families: optical (HiRISE), topographic (DEM/slope), geologic (USGS), atmospheric (REMS) |
 | Radiation / space weather | MSL RAD surface baseline; nominal vs solar-particle-event ×3 scenario |
@@ -102,6 +109,7 @@ python scripts/sharpen-globe.py
 
 - **Rock-scale obstacles.** The A* grid is ~24 m; boulders and small scarps are not segmented as collision geometry.
 - **Global 3D terrain.** The globe is a smooth ellipsoid; a local Gale heightmap is the deferred next step.
+- **Full atmospheric scattering.** The current limb is a screen-space rim, not a radiative-transfer Mars atmosphere.
 - **Spatial thermal/radiation rasters.** Thermal is point weather and radiation is a route model, not a measured global raster.
 - **Real-time space weather feed.** The solar-event multiplier is a scenario, not a live NOAA/NASA space-weather subscription.
 - **Per-crew task assignment.** The app models two suit pairs but does not assign individual tasks or roles.
@@ -120,7 +128,10 @@ python scripts/sharpen-globe.py
 
 - NASA/JPL-Caltech Mars Trek, including the Viking/MOLA global mosaics, Gale HiRISE mosaic and DEM, regions, nomenclature, landing sites, and rover traverses.
 - NASA/JPL-Caltech/University of Arizona — HiRISE.
-- NASA/JPL-Caltech/USGS/ESA — MOLA/HRSC blend.
+- NASA/JPL-Caltech/USGS/ESA — MOLA/HRSC blend and shaded relief.
+- NASA/Goddard Space Flight Center Scientific Visualization Studio — Deep Star Maps 2020 (Hipparcos-2, Tycho-2, Gaia DR2).
+- NASA/GISS Mars24 — Allison & McEwen (2000) solar-position algorithm.
+- `py360convert` for equirectangular-to-cubemap conversion.
 - USGS Astrogeology Science Center — planetary geologic map.
 - NASA/JPL-Caltech/MSSS — Curiosity Mastcam/Navcam imagery and waypoint content.
 - NASA/JPL-Caltech/CAB — MSL REMS weather.

@@ -113,9 +113,7 @@ export function buildRoute(
 ): RouteResult | null {
   const suitFactor = SUIT_FACTOR[options.suit ?? "standard"];
   const solarFactor = options.solarEvent ? 3 : 1;
-  const stops = waypoints
-    .map((w) => ({ w, o: OBJECTIVES[w.id] }))
-    .filter((x) => x.o);
+  const stops = waypoints.map((w) => ({ w, o: OBJECTIVES[w.id] }));
   if (stops.length < 2) return null;
 
   const grid = getNavGrid(dem);
@@ -145,7 +143,7 @@ export function buildRoute(
       bearingDeg: bearing,
       elev,
       slopeDeg: slope,
-      dwellMin: OBJECTIVES[w.id].dwellMin,
+      dwellMin: OBJECTIVES[w.id]?.dwellMin ?? 0,
     };
     routeStops.push(stop);
 
@@ -217,8 +215,7 @@ export function buildRoute(
 
   const returnHours = walkHours;
   const restHours = (walkHours + returnHours) / 6;
-  const dwellHours =
-    stops.reduce((sum, s) => sum + (OBJECTIVES[s.w.id]?.dwellMin ?? 0), 0) / 60;
+  const dwellHours = routeStops.reduce((sum, s) => sum + s.dwellMin, 0) / 60;
   const totalHours = walkHours + returnHours + restHours + dwellHours;
   const doseMsv = totalHours * 0.026 * solarFactor;
 

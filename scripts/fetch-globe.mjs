@@ -228,6 +228,12 @@ await downloadTo(
   path.join(OUT, "mars-viking-4k.jpg"),
 );
 
+console.log("[globe] MOLA shade");
+await downloadTo(
+  `${BASE}/Mars_MOLA_blend200ppx_HRSC_Shade_clon0dd_200mpp_lzw/ImageServer/exportImage?bbox=-180,-90,180,90&bboxSR=104905&imageSR=104905&size=4096,2048&format=jpg&f=image`,
+  path.join(OUT, "mars-mola-shade-4k.jpg"),
+);
+
 function cleanHtml(html) {
   return html
     .replace(/<[^>]+>/g, " ")

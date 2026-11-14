@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Viewer } from "cesium";
 
 import { FieldAtlas } from "./fieldatlas/FieldAtlas";
 import { GlobeView } from "./globe/GlobeView";
+import { getMarsSun } from "./globe/mars24";
 import { flyToPlace, setLabelsVisible } from "./globe/sectors";
 import type { GlobePlace, HoverInfo } from "./globe/types";
 import { Controls } from "./ui/Controls";
@@ -19,8 +20,14 @@ export default function App() {
   const [layersOpen, setLayersOpen] = useState(false);
   const [labelsOn, setLabelsOn] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const [sun, setSun] = useState(() => getMarsSun());
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setSun(getMarsSun()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   return (
     <main className="app">
@@ -92,6 +99,12 @@ export default function App() {
             <b>{selection.name.toUpperCase()}</b>
           </>
         )}
+      </div>
+
+      <div className="sun-readout">
+        SUN {sun.lonEast.toFixed(0)}°E · Ls {sun.ls.toFixed(0)}° · MTC{" "}
+        {String(Math.floor(sun.mstHours)).padStart(2, "0")}:
+        {String(Math.floor((sun.mstHours % 1) * 60)).padStart(2, "0")}
       </div>
 
       <div className="credits">

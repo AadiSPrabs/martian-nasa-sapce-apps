@@ -2,7 +2,7 @@
 
 **Build plan v2 · 14 Nov 2026**
 
-> **Build status:** baseline implemented and production build verified — Cesium Mars globe, sector hover/search, Gale A* field atlas, safety envelope, Walk mode, and the Orbital UI. The sections below are the design reference and record the decisions that shaped it; 3D terrain remains deferred (§8.9).
+> **Build status:** baseline implemented and production build verified — Cesium Mars globe, NASA Deep Star Maps sky, real-time Mars24 sun/terminator, MOLA relief, sector hover/search, editable Gale A* route builder, safety envelope, Walk mode, and the Orbital UI. The sections below are the design reference and record the decisions that shaped it; 3D terrain remains deferred (§8.9).
 
 ---
 
@@ -189,8 +189,8 @@ Verified in the Cesium 1.147 docs:
 - `Cesium.Ellipsoid.MARS` is a built-in ellipsoid, sourced from **EPSG:104905** — the same CRS as Mars Trek.
 - `new Cesium.Globe(ellipsoid)` accepts a custom ellipsoid.
 - `Viewer` can be constructed with `globe`, `terrainProvider`, `skyBox`, and `baseLayer: false`.
-- `SingleTileImageryProvider` can drape a global 8K image over `Rectangle.fromDegrees(-180, -90, 180, 90)`.
-- The default `SkyBox` uses real Tycho-2 star textures.
+- `SingleTileImageryProvider` can drape a global 8K image over `Rectangle.fromDegrees(-180, -90, 180, 90)`; in the build, 4K base + streamed LOD proved more reliable.
+- The build uses NASA SVS **Deep Star Maps 2020** as a six-face cubemap with a real Milky Way, plus a Mars24-driven directional light and screen-space atmosphere rim. The original Tycho-2 star box was replaced.
 - Entity picking, `DistanceDisplayCondition`, `LabelGraphics`, and `camera.flyTo` cover the sector interactions.
 
 This removes the biggest risk: no custom WebGL globe, no projection mismatch, no reinvented camera controls.
@@ -246,8 +246,8 @@ Notes:
 
 ### 4.4 Stars
 
-- Default: Cesium's **Tycho-2** skybox — real star positions and brightness, no generic noise texture.
-- Stretch: NASA SVS **Deep Star Maps 2020** (Hipparcos-2/Tycho-2/Gaia DR2, 1.7 billion stars, includes the Milky Way) as a custom cube map. The 4K EXR is 34 MB; convert to six 2048² JPEG faces at build time. Credit NASA/Goddard SVS.
+- Default: NASA SVS **Deep Star Maps 2020** — 4K celestial cubemap with the Milky Way, built from Hipparcos-2/Tycho-2/Gaia DR2. Credit NASA/Goddard SVS.
+- The Mars24 model (Allison & McEwen 2000) computes the subsolar point for the current UTC instant; the scene light and sun sprite follow it, with a terminator and a thin projected atmosphere rim.
 - Do not rotate the star field with the camera; it is inertial. The camera orbits Mars, stars stay fixed.
 
 ### 4.5 Lighting and atmosphere

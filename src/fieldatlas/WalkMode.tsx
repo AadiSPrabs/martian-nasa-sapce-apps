@@ -43,7 +43,13 @@ export function WalkMode({ route, onClose }: WalkModeProps) {
   }, [leg, next, route, stops]);
 
   const image = next.waypoint.image;
-  const nextObjective = OBJECTIVES[next.waypoint.id];
+  const nextObjective = OBJECTIVES[next.waypoint.id] ?? {
+    id: next.waypoint.id,
+    title: next.waypoint.name,
+    detail: next.waypoint.description,
+    dwellMin: 0,
+    priority: "Could" as const,
+  };
   const rawCaption = next.waypoint.caption ?? "";
   const caption =
     rawCaption.length > 0 && rawCaption.length <= 220
