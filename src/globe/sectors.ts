@@ -373,10 +373,10 @@ export async function mountSectors(
       id: String(p.id),
       name: `${p.mission} traverse`,
       properties: { ...p, kind: "traverse" },
-      show: false,
+      show: true,
       polyline: {
         positions: Cesium.Cartesian3.fromDegreesArray(flat, MARS),
-        width: 1.8,
+        width: 2.4,
         material: color,
         arcType: Cesium.ArcType.GEODESIC,
         clampToGround: true,

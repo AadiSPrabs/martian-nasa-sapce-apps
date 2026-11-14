@@ -222,6 +222,12 @@ async function writeJson(name, data) {
 
 await fs.mkdir(OUT, { recursive: true });
 
+console.log("[globe] global texture");
+await downloadTo(
+  `${BASE}/Mars_Viking_MDIM21_ClrMosaic_global_232m/ImageServer/exportImage?bbox=-180,-90,180,90&bboxSR=104905&imageSR=104905&size=4096,2048&format=jpg&f=image`,
+  path.join(OUT, "mars-viking-4k.jpg"),
+);
+
 function cleanHtml(html) {
   return html
     .replace(/<[^>]+>/g, " ")

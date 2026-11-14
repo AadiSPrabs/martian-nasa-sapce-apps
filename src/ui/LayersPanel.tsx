@@ -11,7 +11,7 @@ type LayersPanelProps = {
 
 export function LayersPanel({ viewer, onClose }: LayersPanelProps) {
   const [quads, setQuads] = useState(false);
-  const [traverses, setTraverses] = useState(false);
+  const [traverses, setTraverses] = useState(true);
 
   return (
     <aside className="layers-panel" aria-label="Map layers">

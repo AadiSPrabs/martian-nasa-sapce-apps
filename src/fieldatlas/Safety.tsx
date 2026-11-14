@@ -7,7 +7,15 @@ function pct(value: number, limit: number) {
   return Math.min(100, (value / limit) * 100);
 }
 
-export function Safety({ route, weather }: { route: RouteResult | null; weather?: string }) {
+export function Safety({
+  route,
+  weather,
+  solarEvent,
+}: {
+  route: RouteResult | null;
+  weather?: string;
+  solarEvent?: boolean;
+}) {
   if (!route) return null;
 
   const timePct = pct(route.totalHours, MISSION.evaLimitHours);
@@ -43,8 +51,13 @@ export function Safety({ route, weather }: { route: RouteResult | null; weather?
         <i style={{ width: `${slopePct}%` }} className={slopePct > 90 ? "hot" : ""} />
       </div>
 
+      <div className="safety-turn">
+        <span>TURN-BACK</span>
+        <b>{route.turnBackKm.toFixed(2)} km</b>
+      </div>
+
       <div className="thermal">
-        <span>THERMAL</span>
+        <span>{solarEvent ? "SOLAR EVENT ×3" : "THERMAL"}</span>
         <b>{weather ?? "−71…−5 °C · 09:00–16:00 LMST"}</b>
       </div>
 

@@ -74,6 +74,30 @@ export function Profile({ route }: { route: RouteResult | null }) {
           </g>
         );
       })}
+      {route.turnBackPoint && route.turnBackKm > 0 && (
+        <g>
+          <line
+            x1={(route.turnBackKm / total) * 1000}
+            y1={8}
+            x2={(route.turnBackKm / total) * 1000}
+            y2={92}
+            stroke="#D9A441"
+            strokeOpacity="0.75"
+            strokeDasharray="3 3"
+            vectorEffect="non-scaling-stroke"
+          />
+          <text
+            x={(route.turnBackKm / total) * 1000}
+            y={6}
+            fill="#D9A441"
+            fontSize="6"
+            fontFamily="IBM Plex Mono, monospace"
+            textAnchor="middle"
+          >
+            TURN-BACK
+          </text>
+        </g>
+      )}
       <text x="4" y="10" fill="#6E6A63" fontSize="7" fontFamily="IBM Plex Mono, monospace">
         {Math.round(max).toLocaleString()} m
       </text>

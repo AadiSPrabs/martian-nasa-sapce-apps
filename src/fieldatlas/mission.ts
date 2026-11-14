@@ -44,6 +44,12 @@ export const ROUTE_MODES = [
     detail: "2 stops · shortest walk",
     ids: ["murray_buttes", "hematite_hotspot"],
   },
+  {
+    id: "relay",
+    label: "Rover relay",
+    detail: "Rover moves to Bagnold · 3 stops",
+    ids: ["bagnold_dunes_south", "vera_rubin_ridge", "hematite_hotspot"],
+  },
 ] as const;
 
 export type RouteModeId = (typeof ROUTE_MODES)[number]["id"];
@@ -92,10 +98,11 @@ export const MISSION = {
   name: "Hematite Ridge",
   site: "Gale Crater · Aeolis Mons",
   crew: 4,
+  suitPairs: 2,
   evaLimitHours: 6,
   doseLimitMsv: 0.25,
   baseAltitudeM: -4380,
   targetAltitudeM: -4147,
   description:
-    "A four-person surface excursion from the pressurised rover at Murray Buttes to the hematite-rich ridge above the Bagnold dune field.",
+    "A four-person surface excursion from the pressurised rover at Murray Buttes to the hematite-rich ridge above the Bagnold dune field. Two suit pairs work the traverse; the rover can reposition to carry tools and samples.",
 };

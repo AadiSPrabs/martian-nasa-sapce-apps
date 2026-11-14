@@ -7,6 +7,12 @@ import type { GlobePlace, HoverInfo } from "./types";
 const MARS = Cesium.Ellipsoid.MARS;
 Cesium.Ellipsoid.default = MARS;
 
+const TREK = "https://trek.nasa.gov/mars/trekarcgis/rest/services";
+
+function exportUrl(service: string) {
+  return `${TREK}/${service}/ImageServer/exportImage?bbox={westDegrees},{southDegrees},{eastDegrees},{northDegrees}&bboxSR=104905&imageSR=104905&size={width},{height}&format=jpg&f=image`;
+}
+
 type GlobeViewProps = {
   onReady?: () => void;
   onHover?: (hover: HoverInfo | null) => void;
@@ -63,7 +69,8 @@ export function GlobeView({
     if (viewer.scene.sun) viewer.scene.sun.show = false;
     if (viewer.scene.moon) viewer.scene.moon.show = false;
     viewer.scene.requestRenderMode = false;
-    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 350_000;
+    viewer.scene.globe.maximumScreenSpaceError = 1.5;
+    viewer.scene.screenSpaceCameraController.minimumZoomDistance = 300_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30_000_000;
 
     // Cesium's Camera is created with the WGS84 ellipsoid. At Mars-scale
@@ -91,6 +98,33 @@ export function GlobeView({
     });
     viewer.imageryLayers.addImageryProvider(imagery);
 
+    // Regional LOD: stream native Mars Trek exports when the camera is close
+    // enough that the 4K base texture would pixelate.
+    const regional = new Cesium.UrlTemplateImageryProvider({
+      url: exportUrl("Mars_Viking_MDIM21_ClrMosaic_global_232m"),
+      tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
+      rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
+      minimumLevel: 5,
+      maximumLevel: 9,
+      tileWidth: 512,
+      tileHeight: 512,
+      enablePickFeatures: false,
+    });
+    viewer.imageryLayers.addImageryProvider(regional);
+
+    // True HiRISE detail over Gale: the same imagery used by the field atlas.
+    const galeDetail = new Cesium.UrlTemplateImageryProvider({
+      url: exportUrl("curiosity_hirise_mosaic"),
+      tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
+      rectangle: Cesium.Rectangle.fromDegrees(137.12, -4.93, 137.73, -4.25),
+      minimumLevel: 8,
+      maximumLevel: 17,
+      tileWidth: 512,
+      tileHeight: 512,
+      enablePickFeatures: false,
+    });
+    viewer.imageryLayers.addImageryProvider(galeDetail);
+
     viewer.camera.setView({
       destination: Cesium.Cartesian3.fromDegrees(-70, 5, 3.1 * 3_396_190, MARS),
       orientation: {
@@ -99,6 +133,25 @@ export function GlobeView({
         roll: 0,
       },
     });
+
+    // Only Gale has submeter imagery. Elsewhere, stop before the 232 m/px
+    // regional mosaic is magnified into mush.
+    const updateZoomLimit = () => {
+      const carto = viewer.camera.positionCartographic;
+      const lon = Cesium.Math.toDegrees(carto.longitude);
+      const lat = Cesium.Math.toDegrees(carto.latitude);
+      const overGale =
+        lon >= 137.12 && lon <= 137.73 && lat >= -4.93 && lat <= -4.25;
+      viewer.scene.screenSpaceCameraController.minimumZoomDistance = overGale
+        ? 2_500
+        : 300_000;
+      if (!overGale && carto.height < 300_000) {
+        viewer.camera.zoomOut(300_000 - carto.height);
+      }
+    };
+    viewer.camera.changed.addEventListener(updateZoomLimit);
+    updateZoomLimit();
+
     viewer.scene.requestRender();
 
     viewer.scene.globe.tileLoadProgressEvent.addEventListener(() => {
@@ -156,6 +209,7 @@ export function GlobeView({
       disposed = true;
       window.clearTimeout(readyTimer);
       window.clearTimeout(renderTimer);
+      viewer.camera.changed.removeEventListener(updateZoomLimit);
       sectorCleanup?.();
       viewerRef.current = null;
       viewerCallbackRef.current?.(null);

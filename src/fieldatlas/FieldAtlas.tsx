@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import * as L from "leaflet";
+import { Database } from "lucide-react";
 
 import { GALE_BBOX, MISSION, OBJECTIVES, ROUTE_MODES, type RouteModeId, type WaypointData } from "./mission";
 import { loadDem, sampleDem, type Dem } from "./dem";
-import { buildRoute, type RouteResult } from "./route";
+import { buildRoute, type RouteResult, type SuitLoad } from "./route";
+import { DataPanel } from "./DataPanel";
 import { Profile } from "./Profile";
 import { Safety } from "./Safety";
 import { WalkMode } from "./WalkMode";
@@ -42,8 +44,11 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [routeMode, setRouteMode] = useState<RouteModeId>("science");
+  const [suitLoad, setSuitLoad] = useState<SuitLoad>("standard");
+  const [solarEvent, setSolarEvent] = useState(false);
   const [selectedId, setSelectedId] = useState("vera_rubin_ridge");
   const [walkOpen, setWalkOpen] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cursor, setCursor] = useState<{ lon: number; lat: number; elev: number | null } | null>(
@@ -147,8 +152,8 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
     const ordered = mode.ids
       .map((id) => waypoints.find((w) => w.id === id))
       .filter((w): w is WaypointData => Boolean(w));
-    setRoute(buildRoute(ordered, dem));
-  }, [dem, waypoints, routeMode]);
+    setRoute(buildRoute(ordered, dem, { suit: suitLoad, solarEvent }));
+  }, [dem, waypoints, routeMode, suitLoad, solarEvent]);
 
   useEffect(() => {
     if (!mapRef.current || !route) return;
@@ -189,6 +194,21 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
         });
       });
       markersRef.current.set(stop.waypoint.id, marker);
+    }
+
+    if (route.turnBackPoint) {
+      const tb = route.turnBackPoint;
+      L.marker([tb.lat, tb.lon], {
+        interactive: false,
+        icon: L.divIcon({
+          className: "atlas-turnback-wrap",
+          html: `<span class="atlas-turnback"><b>TURN-BACK</b><small>${route.turnBackKm.toFixed(
+            2,
+          )} km</small></span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+      }).addTo(group);
     }
 
     const routeBounds = L.latLngBounds(
@@ -236,7 +256,14 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
         </div>
         <div className="atlas-site">GALE CRATER · AEOLIS MONS</div>
         <div className="atlas-chip">{weatherChip}</div>
-        <div className="atlas-chip">EVA {MISSION.evaLimitHours.toFixed(0)} H · {MISSION.crew} CREW</div>
+        <div className="atlas-chip">EVA {MISSION.evaLimitHours.toFixed(0)} H · {MISSION.crew} CREW · {MISSION.suitPairs} SUIT PAIRS</div>
+        <div className={`atlas-chip ${solarEvent ? "alert" : ""}`}>
+          {solarEvent ? "SOLAR PARTICLE EVENT" : "SPACE WEATHER NOMINAL"}
+        </div>
+        <button className="atlas-data" type="button" onClick={() => setDataOpen(true)}>
+          <Database size={13} strokeWidth={1.7} />
+          Data
+        </button>
         <button
           className="atlas-walk"
           type="button"
@@ -335,6 +362,49 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
             ))}
           </div>
 
+          {routeMode === "relay" && (
+            <div className="atlas-note-small">
+              Rover repositions to Bagnold South before the EVA. The drive is outside the
+              suit clock; the rover carries tools and sample caching.
+            </div>
+          )}
+
+          <div className="atlas-panel-head" style={{ marginTop: 16 }}>
+            <span>Suit load</span>
+          </div>
+          <div className="atlas-segmented">
+            {(["light", "standard", "heavy"] as SuitLoad[]).map((suit) => (
+              <button
+                key={suit}
+                type="button"
+                className={suitLoad === suit ? "active" : ""}
+                onClick={() => setSuitLoad(suit)}
+              >
+                {suit}
+              </button>
+            ))}
+          </div>
+
+          <div className="atlas-panel-head" style={{ marginTop: 16 }}>
+            <span>Space weather</span>
+          </div>
+          <div className="atlas-segmented two">
+            <button
+              type="button"
+              className={!solarEvent ? "active" : ""}
+              onClick={() => setSolarEvent(false)}
+            >
+              Nominal
+            </button>
+            <button
+              type="button"
+              className={solarEvent ? "active danger" : ""}
+              onClick={() => setSolarEvent(true)}
+            >
+              Solar event
+            </button>
+          </div>
+
           <div className="atlas-panel-head" style={{ marginTop: 18 }}>
             <span>Traverse</span>
             <b>{route?.stops.length ?? 0} stops</b>
@@ -366,6 +436,18 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
               </li>
             ))}
           </ol>
+
+          {route && (
+            <div className="atlas-science">
+              <span>SCIENCE RETURN</span>
+              <b>
+                {route.stops.filter((s) => OBJECTIVES[s.waypoint.id]?.priority === "Must").length}{" "}
+                Must ·{" "}
+                {route.stops.filter((s) => OBJECTIVES[s.waypoint.id]?.priority === "Should").length}{" "}
+                Should
+              </b>
+            </div>
+          )}
         </aside>
 
         <section className="atlas-center">
@@ -432,7 +514,7 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
             </div>
           )}
 
-          <Safety route={route} weather={latest ? `−71…−5 °C · SOL ${latest.sol}` : undefined} />
+          <Safety route={route} weather={latest ? `−71…−5 °C · SOL ${latest.sol}` : undefined} solarEvent={solarEvent} />
         </aside>
       </div>
 
@@ -475,6 +557,17 @@ export function FieldAtlas({ onClose }: FieldAtlasProps) {
       {walkOpen && route &&
         createPortal(
           <WalkMode route={route} onClose={() => setWalkOpen(false)} />,
+          document.body,
+        )}
+
+      {dataOpen &&
+        createPortal(
+          <DataPanel
+            route={route}
+            suitLoad={suitLoad}
+            solarEvent={solarEvent}
+            onClose={() => setDataOpen(false)}
+          />,
           document.body,
         )}
     </div>

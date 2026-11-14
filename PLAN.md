@@ -228,10 +228,10 @@ viewer.scene.skyAtmosphere.show = false;   // Mars has a thin atmosphere; skip E
 
 | Layer | Source | Resolution | Purpose |
 |---|---|---|---|
-| **Natural** | `Mars_Viking_MDIM21_ClrMosaic_global_232m` | 232 m/px; bake 8192×4096 | Default globe texture |
+| **Natural** | `Mars_Viking_MDIM21_ClrMosaic_global_232m` | 232 m/px; 4K sharpened static base + runtime 512px regional exports | Default globe texture + LOD |
 | **Terrain** | `Mars_MOLA_blend200ppx_HRSC_ClrShade` | 200 m/px; bake 4096×2048 | Elevation-coloured alternate |
 | **Relief** | `Mars_MOLA_blend200ppx_HRSC_Shade` | 200 m/px; bake 4096×2048 | Grayscale hillshade alternate |
-| **Gale detail** | `curiosity_hirise_mosaic` | ~1.2 m/px; bake 6000 px | Local overlay when zoomed into Gale |
+| **Gale detail** | `curiosity_hirise_mosaic` | Native HiRISE via runtime `exportImage`; minLevel 8 | Local overlay when zoomed into Gale |
 | **Gale DEM** | `Gale_DEM_SMG_1m` | 1 m/px | Field atlas terrain, not globe mesh |
 
 Notes:
@@ -239,8 +239,10 @@ Notes:
 - The globe is a **smooth ellipsoid with imagery**, not a 3D terrain mesh. No global terrain tiles exist in the time budget. Say so in the evidence sheet.
 - The Gale HiRISE overlay is a `SingleTileImageryProvider` with a rectangle; it appears above the global layer at high zoom. At 1.2 m/px it supports the field-atlas transition.
 - Pass `tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: mars })` to every imagery provider; otherwise tile math assumes WGS84.
-- The global texture is baked as JPEG/WebP at 8192×4096; fall back to 4096×2048 if `maximumTextureSize` is smaller.
-- Cesium's `Globe` uses a quadtree; a single 8K texture may blur at deep zoom. That is acceptable for the globe; the field atlas takes over at Gale.
+- The 4K static texture is sharpened and used as the base. It is **not** an 8K single texture: Cesium rejected the oversized allocation in testing, so the design moved to a 4K base plus streamed regional tiles.
+- Regional LOD streams `exportImage` tiles from Mars Trek at 512px from level 5 to 9; Gale HiRISE streams above level 8 up to level 17.
+- Zoom is capped at **300 km outside Gale** because the global source is only 232 m/px; inside Gale it goes to **2.5 km**. This prevents the regional mosaic being magnified into mush.
+- The Curiosity traverse is on by default and visible once the camera descends into Gale.
 
 ### 4.4 Stars
 
@@ -412,7 +414,8 @@ A nominal 6 h EVA is ~0.16 mSv; a 3× solar-event what-if is ~0.47 mSv and excee
 
 | Asset | Source | Processing | Size target |
 |---|---|---|---|
-| Global natural texture | `Mars_Viking_MDIM21_ClrMosaic_global_232m` | Export 8192×4096, JPEG/WebP | ≤ 8 MB |
+| Global natural texture | `Mars_Viking_MDIM21_ClrMosaic_global_232m` | Export 4096×2048, sharpen, JPEG | ≤ 2.5 MB |
+| Regional LOD tiles | Mars Trek `exportImage` | Runtime 512px tiles, level 5–9 (global) and 8–17 (Gale HiRISE) | streamed |
 | Global terrain texture | `Mars_MOLA_blend200ppx_HRSC_ClrShade` | Export 4096×2048 | ≤ 3 MB |
 | Global relief | `Mars_MOLA_blend200ppx_HRSC_Shade` | Export 4096×2048 | ≤ 3 MB |
 | Gale HiRISE | `curiosity_hirise_mosaic` | Export 6000 px wide, stitch if height > 4100 | ≤ 6 MB |
@@ -583,7 +586,7 @@ URL state: `?sector=gale&mode=plan&route=lowSlope` for sharing.
 ### 8.6 Performance
 
 - `requestRenderMode: true`; render on camera change/interaction.
-- Global 8K texture; Gale detail loaded only when `height < 3,000 km` or when Gale is selected.
+- 4K sharpened base; regional 232 m/px LOD streamed on demand; Gale HiRISE detail above level 8.
 - Limit visible labels: 12 region labels at planet, 30 at region, 60 at local; cluster or cull.
 - Nomenclature: 213 level ≤3 entities available at regional zoom; 384 level ≤5 at local zoom; 1,194 level-7 craters are search-only unless in view. Total 1,794 indexed; 40-label budget with collision culling.
 - Traverses simplified to 1–2 px at globe scale; full geometry only in the field atlas.
@@ -784,7 +787,7 @@ martian-nasa-space-apps/
     cesium/                 # copied Cesium assets
     data/
       globe/
-        viking-8k.jpg
+        viking-4k.jpg
         mola-4k.jpg
         relief-4k.jpg
         regions.geojson
@@ -884,7 +887,7 @@ If the globe slips, cut the Jezero POV and 2D/3D before cutting sectors or the G
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Cesium setup/assets | Medium | High | Spike first 30 min; manual static copy; verify `CESIUM_BASE_URL`. |
-| Cesium bundle too heavy | Medium | Medium | Lazy-load field atlas; gzip; 8K texture may be 8 MB. |
+| Cesium bundle too heavy | Medium | Medium | Lazy-load field atlas; gzip; 4K base + streamed LOD tiles. |
 | Sector polygons cross antimeridian | Medium | Medium | Preprocess split; test polar regions. |
 | Label clutter | High | Medium | Zoom buckets; limit labels; cluster if needed. |
 | Globe looks flat/ugly | Medium | High | Use Viking natural color; add relief toggle; tune camera/lighting; optional Milky Way. |

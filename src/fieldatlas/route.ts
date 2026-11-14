@@ -54,6 +54,19 @@ export type RouteStop = {
   dwellMin: number;
 };
 
+export type SuitLoad = "light" | "standard" | "heavy";
+
+const SUIT_FACTOR: Record<SuitLoad, number> = {
+  light: 0.7,
+  standard: 0.6,
+  heavy: 0.45,
+};
+
+export type RouteOptions = {
+  suit?: SuitLoad;
+  solarEvent?: boolean;
+};
+
 export type RouteResult = {
   points: RoutePoint[];
   stops: RouteStop[];
@@ -67,13 +80,15 @@ export type RouteResult = {
   totalHours: number;
   returnHours: number;
   doseMsv: number;
+  turnBackKm: number;
+  turnBackPoint: RoutePoint | null;
   feasible: boolean;
   warnings: string[];
 };
 
-function speedKmh(slopeDeg: number): number {
+function speedKmh(slopeDeg: number, suitFactor: number): number {
   const s = Math.tan((slopeDeg * Math.PI) / 180);
-  const v = 5.04 * Math.exp(-3.5 * Math.abs(s + 0.05)) * 0.6;
+  const v = 5.04 * Math.exp(-3.5 * Math.abs(s + 0.05)) * suitFactor;
   return Math.min(3.0, Math.max(0.3, v));
 }
 
@@ -94,7 +109,10 @@ function straightPath(
 export function buildRoute(
   waypoints: WaypointData[],
   dem: Dem,
+  options: RouteOptions = {},
 ): RouteResult | null {
+  const suitFactor = SUIT_FACTOR[options.suit ?? "standard"];
+  const solarFactor = options.solarEvent ? 3 : 1;
   const stops = waypoints
     .map((w) => ({ w, o: OBJECTIVES[w.id] }))
     .filter((x) => x.o);
@@ -194,7 +212,7 @@ export function buildRoute(
     const a = points[i - 1];
     const b = points[i];
     const dKm = haversineM(a, b) / 1000;
-    walkHours += dKm / speedKmh((a.slopeDeg + b.slopeDeg) / 2);
+    walkHours += dKm / speedKmh((a.slopeDeg + b.slopeDeg) / 2, suitFactor);
   }
 
   const returnHours = walkHours;
@@ -202,7 +220,27 @@ export function buildRoute(
   const dwellHours =
     stops.reduce((sum, s) => sum + (OBJECTIVES[s.w.id]?.dwellMin ?? 0), 0) / 60;
   const totalHours = walkHours + returnHours + restHours + dwellHours;
-  const doseMsv = totalHours * 0.026;
+  const doseMsv = totalHours * 0.026 * solarFactor;
+
+  // Turn-back: the farthest point from which a return still fits the EVA clock.
+  let turnBackPoint: RoutePoint | null = points[0] ?? null;
+  let turnBackKm = 0;
+  let walkTo = 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    const dKm = haversineM(a, b) / 1000;
+    walkTo += dKm / speedKmh((a.slopeDeg + b.slopeDeg) / 2, suitFactor);
+    const dwellBefore =
+      routeStops
+        .filter((s) => s.index > 0 && s.distanceKm <= b.distanceKm)
+        .reduce((sum, s) => sum + s.dwellMin, 0) / 60;
+    const roundTrip = 2 * walkTo + (2 * walkTo) / 6 + dwellBefore;
+    if (roundTrip <= MISSION.evaLimitHours) {
+      turnBackPoint = b;
+      turnBackKm = b.distanceKm;
+    }
+  }
 
   const warnings: string[] = [];
   if (totalHours > MISSION.evaLimitHours) {
@@ -234,6 +272,8 @@ export function buildRoute(
     totalHours,
     returnHours,
     doseMsv,
+    turnBackKm,
+    turnBackPoint,
     feasible: warnings.length === 0,
     warnings,
   };
