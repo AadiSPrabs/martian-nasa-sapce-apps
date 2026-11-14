@@ -1,0 +1,974 @@
+{
+  "latest": {
+    "sol": 4995,
+    "date": "2026-08-25",
+    "minC": "-71",
+    "maxC": "-5",
+    "pressurePa": "777",
+    "opacity": "Sunny",
+    "season": "Month 12"
+  },
+  "recent": [
+    {
+      "sol": 4876,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 838,
+      "opacity": "Sunny",
+      "season": "Month 9"
+    },
+    {
+      "sol": 4877,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 841,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4878,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 842,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4879,
+      "minC": -69,
+      "maxC": -4,
+      "pressurePa": 842,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4880,
+      "minC": -70,
+      "maxC": -3,
+      "pressurePa": 840,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4881,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 840,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4882,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 838,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4883,
+      "minC": -71,
+      "maxC": -3,
+      "pressurePa": 838,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4884,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 838,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4885,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 837,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4886,
+      "minC": -73,
+      "maxC": -2,
+      "pressurePa": 838,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4887,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 837,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4888,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 834,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4889,
+      "minC": -69,
+      "maxC": -4,
+      "pressurePa": 834,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4890,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 832,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4891,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 832,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4892,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 832,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4893,
+      "minC": -70,
+      "maxC": 0,
+      "pressurePa": 830,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4894,
+      "minC": -71,
+      "maxC": 4,
+      "pressurePa": 829,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4895,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 827,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4896,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 827,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4897,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 826,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4898,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 825,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4899,
+      "minC": -71,
+      "maxC": 0,
+      "pressurePa": 826,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4900,
+      "minC": -70,
+      "maxC": 4,
+      "pressurePa": 824,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4901,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 824,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4902,
+      "minC": -72,
+      "maxC": -2,
+      "pressurePa": 822,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4903,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 822,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4904,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 822,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4905,
+      "minC": -70,
+      "maxC": 1,
+      "pressurePa": 819,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4906,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 820,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4907,
+      "minC": -70,
+      "maxC": -4,
+      "pressurePa": 820,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4908,
+      "minC": -72,
+      "maxC": -1,
+      "pressurePa": 819,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4909,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 820,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4910,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 816,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4911,
+      "minC": -71,
+      "maxC": 0,
+      "pressurePa": 818,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4912,
+      "minC": -71,
+      "maxC": 1,
+      "pressurePa": 815,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4913,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 815,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4914,
+      "minC": -70,
+      "maxC": 0,
+      "pressurePa": 817,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4915,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 813,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4916,
+      "minC": -68,
+      "maxC": -3,
+      "pressurePa": 814,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4917,
+      "minC": -70,
+      "maxC": 0,
+      "pressurePa": 812,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4918,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 813,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4919,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 813,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4920,
+      "minC": -71,
+      "maxC": -1,
+      "pressurePa": 810,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4921,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 813,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4922,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 808,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4923,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 809,
+      "opacity": "Sunny",
+      "season": "Month 10"
+    },
+    {
+      "sol": 4924,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 807,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4925,
+      "minC": -72,
+      "maxC": -4,
+      "pressurePa": 806,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4926,
+      "minC": -72,
+      "maxC": -2,
+      "pressurePa": 809,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4927,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 804,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4928,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 805,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4929,
+      "minC": -69,
+      "maxC": -5,
+      "pressurePa": 801,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4930,
+      "minC": -69,
+      "maxC": -3,
+      "pressurePa": 804,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4931,
+      "minC": -68,
+      "maxC": -3,
+      "pressurePa": 806,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4932,
+      "minC": -70,
+      "maxC": -3,
+      "pressurePa": 803,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4933,
+      "minC": -69,
+      "maxC": -3,
+      "pressurePa": 804,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4934,
+      "minC": -68,
+      "maxC": -2,
+      "pressurePa": 798,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4935,
+      "minC": -69,
+      "maxC": -3,
+      "pressurePa": 801,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4936,
+      "minC": -69,
+      "maxC": -2,
+      "pressurePa": 800,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4937,
+      "minC": -70,
+      "maxC": -3,
+      "pressurePa": 798,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4938,
+      "minC": -71,
+      "maxC": -7,
+      "pressurePa": 800,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4939,
+      "minC": -69,
+      "maxC": 0,
+      "pressurePa": 796,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4940,
+      "minC": -69,
+      "maxC": -1,
+      "pressurePa": 800,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4941,
+      "minC": -70,
+      "maxC": 0,
+      "pressurePa": 795,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4942,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 796,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4943,
+      "minC": -70,
+      "maxC": -6,
+      "pressurePa": 797,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4944,
+      "minC": -71,
+      "maxC": -4,
+      "pressurePa": 794,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4945,
+      "minC": -70,
+      "maxC": -9,
+      "pressurePa": 797,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4946,
+      "minC": -73,
+      "maxC": -1,
+      "pressurePa": 790,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4947,
+      "minC": -70,
+      "maxC": -1,
+      "pressurePa": 794,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4948,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 791,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4949,
+      "minC": -71,
+      "maxC": 1,
+      "pressurePa": 792,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4950,
+      "minC": -71,
+      "maxC": -8,
+      "pressurePa": 797,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4951,
+      "minC": -71,
+      "maxC": -2,
+      "pressurePa": 790,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4952,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 793,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4953,
+      "minC": -72,
+      "maxC": -4,
+      "pressurePa": 788,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4954,
+      "minC": -70,
+      "maxC": -7,
+      "pressurePa": 793,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4955,
+      "minC": -71,
+      "maxC": -6,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4956,
+      "minC": -66,
+      "maxC": -11,
+      "pressurePa": 782,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4957,
+      "minC": -71,
+      "maxC": -16,
+      "pressurePa": 792,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4958,
+      "minC": -72,
+      "maxC": -12,
+      "pressurePa": 787,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4959,
+      "minC": -72,
+      "maxC": -7,
+      "pressurePa": 788,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4960,
+      "minC": -72,
+      "maxC": -9,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4961,
+      "minC": -72,
+      "maxC": -10,
+      "pressurePa": 793,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4962,
+      "minC": -74,
+      "maxC": -7,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4963,
+      "minC": -70,
+      "maxC": -2,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4964,
+      "minC": -70,
+      "maxC": -3,
+      "pressurePa": 784,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4965,
+      "minC": -71,
+      "maxC": 0,
+      "pressurePa": 785,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4966,
+      "minC": -71,
+      "maxC": -3,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4967,
+      "minC": -72,
+      "maxC": -3,
+      "pressurePa": 784,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4968,
+      "minC": -70,
+      "maxC": -3,
+      "pressurePa": 791,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4969,
+      "minC": -71,
+      "maxC": -4,
+      "pressurePa": 783,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4970,
+      "minC": -72,
+      "maxC": -5,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4971,
+      "minC": -70,
+      "maxC": -4,
+      "pressurePa": 782,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4972,
+      "minC": -69,
+      "maxC": -6,
+      "pressurePa": 784,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4973,
+      "minC": -69,
+      "maxC": -3,
+      "pressurePa": 784,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4974,
+      "minC": -72,
+      "maxC": -8,
+      "pressurePa": 783,
+      "opacity": "Sunny",
+      "season": "Month 11"
+    },
+    {
+      "sol": 4975,
+      "minC": -71,
+      "maxC": -6,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4976,
+      "minC": -72,
+      "maxC": -5,
+      "pressurePa": 781,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4977,
+      "minC": -70,
+      "maxC": -4,
+      "pressurePa": 786,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4978,
+      "minC": -72,
+      "maxC": -7,
+      "pressurePa": 781,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4979,
+      "minC": -71,
+      "maxC": -7,
+      "pressurePa": 785,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4980,
+      "minC": -78,
+      "maxC": -7,
+      "pressurePa": 781,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4981,
+      "minC": -69,
+      "maxC": -8,
+      "pressurePa": 783,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4982,
+      "minC": -69,
+      "maxC": -6,
+      "pressurePa": 780,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4983,
+      "minC": -70,
+      "maxC": -4,
+      "pressurePa": 782,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4984,
+      "minC": -71,
+      "maxC": -6,
+      "pressurePa": 780,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4985,
+      "minC": -70,
+      "maxC": -6,
+      "pressurePa": 781,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4986,
+      "minC": -71,
+      "maxC": -9,
+      "pressurePa": 782,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4987,
+      "minC": -70,
+      "maxC": -9,
+      "pressurePa": 781,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4988,
+      "minC": -70,
+      "maxC": -10,
+      "pressurePa": 780,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4989,
+      "minC": -72,
+      "maxC": -6,
+      "pressurePa": 778,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4990,
+      "minC": -72,
+      "maxC": -8,
+      "pressurePa": 779,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4991,
+      "minC": -69,
+      "maxC": -11,
+      "pressurePa": 779,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4992,
+      "minC": -69,
+      "maxC": -6,
+      "pressurePa": 780,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4993,
+      "minC": -70,
+      "maxC": -6,
+      "pressurePa": 780,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4994,
+      "minC": -70,
+      "maxC": -7,
+      "pressurePa": 777,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    },
+    {
+      "sol": 4995,
+      "minC": -71,
+      "maxC": -5,
+      "pressurePa": 777,
+      "opacity": "Sunny",
+      "season": "Month 12"
+    }
+  ],
+  "source": "NASA/JPL-Caltech/CAB MSL REMS"
+}

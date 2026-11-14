@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-11-14T16:03:04.847Z",
+  "bbox": [
+    137.32,
+    -4.76,
+    137.46,
+    -4.6
+  ],
+  "sources": {
+    "hirise": "NASA/JPL-Caltech/University of Arizona via NASA Mars Trek",
+    "dem": "NASA/JPL-Caltech/USGS Gale DEM 1 m",
+    "geology": "USGS Astrogeology SIM3292",
+    "waypoints": "NASA/JPL-Caltech Curiosity waypoints",
+    "weather": "NASA/JPL-Caltech/CAB REMS"
+  },
+  "credits": "NASA/JPL-Caltech · USGS · MSSS"
+}

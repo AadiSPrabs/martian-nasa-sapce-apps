@@ -1,0 +1,19 @@
+{
+  "bbox": [
+    137.32,
+    -4.76,
+    137.46,
+    -4.6
+  ],
+  "width": 1400,
+  "height": 1600,
+  "pixelSizeM": [
+    5.9077,
+    5.9275
+  ],
+  "min": -4523.69,
+  "max": -3567.3,
+  "verticalDatum": "MOLA areoid",
+  "heightOffsetM": 0,
+  "source": "NASA/JPL-Caltech/USGS Gale DEM 1 m via Mars Trek"
+}

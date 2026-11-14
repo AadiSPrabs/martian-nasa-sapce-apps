@@ -1,0 +1,68 @@
+[
+  {
+    "id": "murray_buttes",
+    "name": "Murray Buttes",
+    "role": "start",
+    "lon": 137.35334,
+    "lat": -4.6954,
+    "description": "After rounding the western edge of the Bagnold Dudes, Curiosity continued south to the Murray Buttes. The mudstone of the Murray Formation that Curiosity has been traversing tells a story of alternating flooding and drying of the ancient lakebed in Gale Crater. The Murray Buttes tell a story of one of the dry periods in this area. They are composed of layered, cross-bedded sandstone originally deposited by wind as migrating sand dunes. The buttes are spectacular landmarks leading south and up the slope of Mt Sharp. Looking ahead from here, the rover team targeted the hematite-rich Vera Rubin Ridge, a clay-rich unit above that, and a sulfate-rich unit even further up. But while still in the Murray formation, Curiosity continued to drill and sample until a fault in the drill feed mechanism disabled the drill on Sol 1536.",
+    "caption": "Mastcam mosaic showing cross-bedded sandstone layers in one of the Murray Buttes (NASA/JPL/MSSS/Ken Kremer/kenkremer.com/Marco Di Lorenzo).",
+    "image": "/data/gale/pov/murray_buttes.jpg",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/murray_buttes.html"
+  },
+  {
+    "id": "bagnold_dunes_south",
+    "name": "Bagnold Dunes South",
+    "role": "science",
+    "lon": 137.35722,
+    "lat": -4.7112,
+    "description": "After leaving the Murray Buttes behind, Curiosity skirted a southern extension of the Bagnold Dunes. This dune field was noticeably different from what Curiosity had encountered in the north. The northern dune field was characterized by arc-shaped barchan dunes indicating that the wind typically blows north to south in that area. But in the southern dune field, the dunes were linear in shape. Researchers suspected that these could be seif dunes, which could indicate frequently changing wind direction.",
+    "caption": "“Curiosity Navcam image of linear dunes in southern segment of Bagnold Dunes (NASA/JPL-Caltech).",
+    "image": "/data/gale/pov/bagnold_dunes_south.jpg",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/bagnold_dunes_south.html"
+  },
+  {
+    "id": "vera_rubin_ridge",
+    "name": "Vera Rubin Ridge",
+    "role": "science",
+    "lon": 137.36832,
+    "lat": -4.72053,
+    "description": "On Sol 1741, Curiosity was looking across a small patch of sand at the base of Vera Rubin Ridge. From this vantage, Curiosity’s Remote Micro-Imager provided stunning views of fine layering in the face of the ridge. This raised ridge is about 200 meters wide and extends about 6.5 kilometers from northeast to southwest, approximately parallel to the Bagnold Dunes. Observations from orbit using the CRISM spectrometer aboard the Mars Reconnaissance Orbiter revealed the ridge to be rich in the mineral hematite. This iron oxide mineral forms in association with water, and close study of this deposit could be very useful in understanding the history of water in Gale Crater. Detailed examination by Curiosity could help determine what chemical processes were involved in the formation of the hematite, providing valuable clues about the environment at the time the deposits formed, and the potential for habitability for life at that time. From this location, the rover team planned to drive Curiosity east along the base of the ridge toward a safe location where the rover could climb onto the ridge.",
+    "caption": "Fine layering revealed in this Remote Micro-Imager mosaic of Vera Rubin Ridge (NASA/JPL-Caltech/LANL/CESR)",
+    "image": "/data/gale/pov/vera_rubin_ridge.jpg",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/vera_rubin_ridge.html"
+  },
+  {
+    "id": "hematite_hotspot",
+    "name": "Hematite Hotspot",
+    "role": "target",
+    "lon": 137.38036,
+    "lat": -4.72476,
+    "description": "After climbing to the top of Vera Rubin Ridge, Curiosity proceeded south across the width of the broad flat ridgetop. It then turned northeast to continue its exploration of the ridge. Throughout this investigation, the rover remained hampered by a non-functioning drill. Along the way, engineers devised a way to operate the drill using the using pressure from the arm to press the drill into the rock instead of using the broken drill feed mechanism. Two attempts at drilling holes this way were made on Sols 1977 and 1984. While both attempts succeeded in drilling holes, the rock proved to be too hard to go deep enough to get retrievable samples. Curiosity continued northeast along the ridgetop and on Sol 2004 was positioned on top of what measurements from orbit indicated was the strongest concentration of hematite anywhere along the rover’s planned path. This iron oxide mineral typically forms in association with water. High concentrations of hematite measured from orbit were the motivation for exploring the ridge. Multispectral measurements from Curiosity’s Mastcam confirmed that this was the best exposure of hematite the rover had yet encountered. During this leg, Curiosity marked an impressive milestone, 2000 Martian days (or Sols) exploring Gale Crater!",
+    "caption": "After climbing to the top of Vera Rubin Ridge, Curiosity proceeded south across the width of the broad flat ridgetop. It then turned northeast to continue its exploration of the ridge. Throughout this investigation, the rover remained hampered by a non-functioning drill. Along the way, engineers devised a way to operate the drill using the using pressure from the arm to press the drill into the rock instead of using the broken drill feed mechanism. Two attempts at drilling holes this way were made on Sols 1977 and 1984. While both attempts succeeded in drilling holes, the rock proved to be too hard to go deep enough to get retrievable samples. Curiosity continued northeast along the ridgetop and on Sol 2004 was positioned on top of what measurements from orbit indicated was the strongest concentration of hematite anywhere along the rover’s planned path. This iron oxide mineral typically forms in association with water. High concentrations of hematite measured from orbit were the motivation for exploring the ridge. Multispectral measurements from Curiosity’s Mastcam confirmed that this was the best exposure of hematite the rover had yet encountered. During this leg, Curiosity marked an impressive milestone, 2000 Martian days (or Sols) exploring Gale Crater!",
+    "image": "/data/gale/pov/hematite_hotspot.jpg",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/hematite_hotspot.html"
+  },
+  {
+    "id": "pahrump_hills",
+    "name": "Pahrump Hills",
+    "role": "context",
+    "lon": 137.37724353716703,
+    "lat": -4.66241193815176,
+    "description": "On sol 753 of its mission, Curiosity arrived at the base of Mt. Sharp. The foothills at the base of the mountain here are named the Pahrump Hills. These are part of the Murray formation, which underlies all of the other exposed rock layers of Mt Sharp. Researchers expect that this represents the oldest geological unit that Curiosity will encounter in its journey. Within the Pahrump Hills, Curiosity drilled at three sites, Confidence Hills (sol 759), Mojave (sol 882), and Telegraph Peak (sol 908). At the Mojave site, a preliminary analysis indicated the presence of jarosite, which would point to rock forming in more acidic water that was found in previous sites, and further illustrate the variety in the history of water on Mars. While at the Pahrump Hills, Curiosity took some time to point its cameras up from the rocks below it to observe the comet Siding Spring as it passed closer to Mars than any comet has passed to Earth in recorded history. On sol 923, Curiosity left the Pahrump Hills by way of Artist’s Drive Valley, continuing its exploration at the base of Mt Sharp. From here, Curiosity will continue to traverse into younger layers of sedimentary rock, reading the history of how the environment of Mars and the habitability on Mars changed over time.",
+    "caption": "Pahrump Hills outcrop and surrounding terrain. NASA/JPL-Caltech/MSSS",
+    "image": "/data/gale/pov/pahrump_hills.png",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/pahrump_hills.html"
+  },
+  {
+    "id": "marias_pass",
+    "name": "Marias Pass",
+    "role": "context",
+    "lon": 137.37140256639952,
+    "lat": -4.667938835464834,
+    "description": "Leaving the Pahrump Hills and continuing southwest, Curiosity made its way to Marias Pass. This region marks the transition between two very different rock units. The Murray formation, which includes the Pahrump Hills is composed of mudstone presumably deposited on a lake floor. Above it is the Stimson formation which formed from wind-deposited sand. Drilling into Murray formation rock just below Marias Pass on Sol 1060, Opportunity obtained samples of a silica mineral called tridymite. This was surprising, since tridymite is formed in association with explosive silicic volcanism that is common on Earth, but rare or even unknown on Mars. Its presence may force scientists to rethink the volcanic history of Mars. Studying the transition between Murray and Stimson rock layers, researchers found that millions to maybe even hundreds of millions of years elapsed between the formation of these two layers. Continuing its drive onto the washboard surface of Stimson terrain, Curiosity’s cameras revealed bright halos surrounding fractures in the rock. These bright halos were found to be enriched in silica compared to surrounding rock.",
+    "caption": "Marias Pass with older mudstone (center) in contact with overlying sandstone – credit NASA/JPL/MSSS",
+    "image": "/data/gale/pov/marias_pass.jpg",
+    "source": "https://trek.nasa.gov/mars/jpl/assets/features/curiosity/marias_pass.html"
+  }
+]
