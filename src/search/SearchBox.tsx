@@ -50,7 +50,7 @@ export function SearchBox({ onSelect }: SearchBoxProps) {
     if (indexStarted.current) return;
     indexStarted.current = true;
     setIndexLoading(true);
-    fetch("/data/globe/search-index.json")
+    fetch(`${import.meta.env.BASE_URL}data/globe/search-index.json`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: SearchItem[]) => setItems(data))
       .catch(() => {})

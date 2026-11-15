@@ -217,11 +217,11 @@ async function fetchRecon(site: Site, rangeKm: number): Promise<SiteTerrain> {
 async function fetchGale(site: Site): Promise<SiteTerrain> {
   const dem = await loadDem();
   const layers: TerrainLayers = {
-    optical: "/data/gale/hirise.jpg",
-    terrain: "/data/gale/hillshade.webp",
-    hillshade: "/data/gale/hillshade.webp",
-    slope: "/data/gale/slope.png",
-    geology: "/data/gale/geology.png",
+    optical: `${import.meta.env.BASE_URL}data/gale/hirise.jpg`,
+    terrain: `${import.meta.env.BASE_URL}data/gale/hillshade.webp`,
+    hillshade: `${import.meta.env.BASE_URL}data/gale/hillshade.webp`,
+    slope: `${import.meta.env.BASE_URL}data/gale/slope.png`,
+    geology: `${import.meta.env.BASE_URL}data/gale/geology.png`,
   };
   return {
     site,

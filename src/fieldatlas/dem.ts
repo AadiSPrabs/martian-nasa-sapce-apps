@@ -17,8 +17,8 @@ export type Dem = {
 
 export async function loadDem(): Promise<Dem> {
   const [metaRes, binRes] = await Promise.all([
-    fetch("/data/gale/dem.json"),
-    fetch("/data/gale/dem.bin"),
+    fetch(`${import.meta.env.BASE_URL}data/gale/dem.json`),
+    fetch(`${import.meta.env.BASE_URL}data/gale/dem.bin`),
   ]);
   if (!metaRes.ok || !binRes.ok) throw new Error("Could not load Gale DEM");
   const meta = (await metaRes.json()) as DemMeta;

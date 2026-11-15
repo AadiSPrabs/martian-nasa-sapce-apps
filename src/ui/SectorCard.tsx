@@ -16,7 +16,7 @@ let featureContentPromise: Promise<Record<string, FeatureContent>> | null = null
 
 function loadFeatureContent(): Promise<Record<string, FeatureContent>> {
   if (!featureContentPromise) {
-    featureContentPromise = fetch("/data/globe/feature-content.json")
+    featureContentPromise = fetch(`${import.meta.env.BASE_URL}data/globe/feature-content.json`)
       .then((r) => (r.ok ? r.json() : []))
       .then((items: FeatureContent[]) =>
         Object.fromEntries(items.map((item) => [item.name, item])),
@@ -90,7 +90,7 @@ export function SectorCard({ place, onClose, onFly, onPlan, canPlan }: SectorCar
         backgroundPosition: "center",
       }
     : {
-        backgroundImage: "url(/data/globe/mars-viking-4k.jpg)",
+        backgroundImage: `url(${import.meta.env.BASE_URL}data/globe/mars-viking-4k.jpg)`,
         backgroundSize: "360% 180%",
         backgroundPosition: `${x}% ${y}%`,
       };

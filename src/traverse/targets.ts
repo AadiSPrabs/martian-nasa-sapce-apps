@@ -31,7 +31,7 @@ export async function buildTargets(
 ): Promise<Target[]> {
   if (terrain.grade === "field") {
     try {
-      const response = await fetch("/data/gale/waypoints.json");
+      const response = await fetch(`${import.meta.env.BASE_URL}data/gale/waypoints.json`);
       const waypoints = (await response.json()) as Waypoint[];
       const chosen = waypoints.filter((w) =>
         ["vera_rubin_ridge", "hematite_hotspot"].includes(w.id),

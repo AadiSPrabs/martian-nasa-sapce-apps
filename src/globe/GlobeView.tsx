@@ -179,7 +179,7 @@ export function GlobeView({
         new Cesium.Cartesian3(),
       ),
       billboard: {
-        image: "/data/sun.png",
+        image: `${import.meta.env.BASE_URL}data/sun.png`,
         width: 72,
         height: 72,
         disableDepthTestDistance: 0,
@@ -267,7 +267,7 @@ export function GlobeView({
     );
 
     const imagery = new Cesium.SingleTileImageryProvider({
-      url: "/data/globe/mars-viking-relief-4k.jpg",
+      url: `${import.meta.env.BASE_URL}data/globe/mars-viking-relief-4k.jpg`,
       rectangle: Cesium.Rectangle.fromDegrees(-180, -90, 180, 90),
       tileWidth: 4096,
       tileHeight: 2048,

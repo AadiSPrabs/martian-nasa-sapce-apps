@@ -3,7 +3,7 @@ import * as Cesium from "cesium";
 import type { GlobePlace, HoverInfo } from "./types";
 
 const MARS = Cesium.Ellipsoid.MARS;
-const BASE = "/data/globe";
+const BASE = `${import.meta.env.BASE_URL}data/globe`;
 
 type Callbacks = {
   onHover: (hover: HoverInfo | null) => void;

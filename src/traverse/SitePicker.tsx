@@ -27,7 +27,7 @@ export function SitePicker({ onClose, onSelect, onPickGlobe }: SitePickerProps) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/data/globe/search-index.json")
+    fetch(`${import.meta.env.BASE_URL}data/globe/search-index.json`)
       .then((r) => r.json() as Promise<SearchItem[]>)
       .then(setItems)
       .catch(() => setError("Search index unavailable. Use coordinates or the globe."));
