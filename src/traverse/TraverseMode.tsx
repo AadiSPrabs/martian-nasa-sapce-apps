@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { ArrowLeft, Crosshair, Mountain, X } from "lucide-react";
 
 import { sampleDem } from "../fieldatlas/dem";
@@ -97,10 +98,10 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
     }
     const next = planRoverRoutes(terrain.dem, site, target, via, totals, solarEvent);
     setRoutes(next);
-    if (!next.some((route) => route.id === routeId)) {
-      setRouteId(next[0]?.id ?? "fastest");
-    }
-  }, [terrain, target, via, totals, site, routeId, solarEvent]);
+    setRouteId((current) =>
+      next.some((route) => route.id === current) ? current : (next[0]?.id ?? "fastest"),
+    );
+  }, [terrain, target, via, totals, site, solarEvent]);
 
   const route = routes.find((item) => item.id === routeId) ?? routes[0] ?? null;
 

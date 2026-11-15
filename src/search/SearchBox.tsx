@@ -41,21 +41,21 @@ export function SearchBox({ onSelect }: SearchBoxProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [indexLoading, setIndexLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const indexStarted = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadIndex = () => {
+    if (indexStarted.current) return;
+    indexStarted.current = true;
+    setIndexLoading(true);
     fetch("/data/globe/search-index.json")
       .then((r) => (r.ok ? r.json() : []))
-      .then((data: SearchItem[]) => {
-        if (!cancelled) setItems(data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      .then((data: SearchItem[]) => setItems(data))
+      .catch(() => {})
+      .finally(() => setIndexLoading(false));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -142,8 +142,12 @@ export function SearchBox({ onSelect }: SearchBoxProps) {
           setQuery(e.target.value);
           setOpen(true);
           setActive(0);
+          loadIndex();
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true);
+          loadIndex();
+        }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -161,6 +165,12 @@ export function SearchBox({ onSelect }: SearchBoxProps) {
         }}
       />
       <kbd>/</kbd>
+
+      {open && indexLoading && query.trim().length > 0 && (
+        <div className="search-results search-loading" aria-live="polite">
+          Loading Mars index…
+        </div>
+      )}
 
       {open && results.length > 0 && (
         <div className="search-results" id="search-results" role="listbox">

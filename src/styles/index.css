@@ -929,6 +929,28 @@ input:focus-visible {
   animation: card-in 180ms ease-out;
 }
 
+.traverse-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 82;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 5, 6, 0.92);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.search-loading {
+  display: block;
+  padding: 12px;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.05em;
+}
+
 /* ---------- field atlas ---------- */
 
 .atlas {

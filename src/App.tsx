@@ -1,18 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import type { Viewer } from "cesium";
 
 import { GlobeView } from "./globe/GlobeView";
 import { getMarsSun } from "./globe/mars24";
 import { flyToPlace, setLabelsVisible } from "./globe/sectors";
 import type { GlobePlace, HoverInfo } from "./globe/types";
+import { CURATED_SITES, siteFromPoint, type Site } from "./traverse/sites";
 import { SitePicker } from "./traverse/SitePicker";
-import { TraverseMode } from "./traverse/TraverseMode";
-import { CURATED_SITES, siteFromPoint, type Site } from "./traverse/terrain";
 import { Controls } from "./ui/Controls";
 import { HoverTooltip } from "./ui/HoverTooltip";
 import { LayersPanel } from "./ui/LayersPanel";
 import { SectorCard } from "./ui/SectorCard";
 import { TopRibbon } from "./ui/TopRibbon";
+
+const TraverseMode = lazy(() =>
+  import("./traverse/TraverseMode").then((module) => ({ default: module.TraverseMode })),
+);
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -42,6 +45,14 @@ export default function App() {
     const id = window.setInterval(() => setSun(getMarsSun()), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const id = window.setTimeout(() => {
+      void import("./traverse/TraverseMode");
+    }, 1600);
+    return () => window.clearTimeout(id);
+  }, [ready]);
 
   useEffect(() => {
     if (!pickSiteMode) return;
@@ -86,7 +97,10 @@ export default function App() {
           setHover(null);
           if (viewerRef.current) flyToPlace(viewerRef.current, place);
         }}
-        onPlan={() => setSitePickerOpen(true)}
+        onPlan={() => {
+          setSitePickerOpen(true);
+          void import("./traverse/TraverseMode");
+        }}
         onLayers={() => setLayersOpen((v) => !v)}
         labelsOn={labelsOn}
         onLabels={() => {
@@ -166,28 +180,29 @@ export default function App() {
         <div className="pick-site-banner">CLICK ANYWHERE ON MARS · ESC TO CANCEL</div>
       )}
 
-      {sitePickerOpen && (
-        <SitePicker
-          onClose={() => setSitePickerOpen(false)}
-          onSelect={openSite}
-          onPickGlobe={() => {
-            setSitePickerOpen(false);
-            setPickSiteMode(true);
-            setSelection(null);
-          }}
-        />
-      )}
-
-      {evaOpen && (
-        <TraverseMode
-          site={site}
-          onClose={() => setEvaOpen(false)}
-          onChangeSite={() => {
-            setEvaOpen(false);
-            setSitePickerOpen(true);
-          }}
-        />
-      )}
+      <Suspense fallback={<div className="traverse-boot">LOADING EVA…</div>}>
+        {sitePickerOpen && (
+          <SitePicker
+            onClose={() => setSitePickerOpen(false)}
+            onSelect={openSite}
+            onPickGlobe={() => {
+              setSitePickerOpen(false);
+              setPickSiteMode(true);
+              setSelection(null);
+            }}
+          />
+        )}
+        {evaOpen && (
+          <TraverseMode
+            site={site}
+            onClose={() => setEvaOpen(false)}
+            onChangeSite={() => {
+              setEvaOpen(false);
+              setSitePickerOpen(true);
+            }}
+          />
+        )}
+      </Suspense>
     </main>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Crosshair, MapPin, Search, X } from "lucide-react";
 
-import { CURATED_SITES, siteFromPoint, type Site } from "./terrain";
+import { CURATED_SITES, siteFromPoint, type Site } from "./sites";
+import "./traverse.css";
 
 type SearchItem = {
   id: string;

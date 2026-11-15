@@ -10,7 +10,6 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/instrument-serif/latin-400.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
 import "cesium/Build/Cesium/Widgets/widgets.css";
-import "leaflet/dist/leaflet.css";
 import "./styles/index.css";
 
 import App from "./App";

@@ -104,9 +104,10 @@ export function GlobeView({
     if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = false;
     if (viewer.scene.sun) viewer.scene.sun.show = false;
     if (viewer.scene.moon) viewer.scene.moon.show = false;
-    viewer.scene.requestRenderMode = false;
-    viewer.scene.globe.maximumScreenSpaceError = 0.6;
-    viewer.scene.globe.tileCacheSize = 250;
+    viewer.scene.requestRenderMode = true;
+    viewer.scene.maximumRenderTimeChange = Infinity;
+    viewer.scene.globe.maximumScreenSpaceError = 0.9;
+    viewer.scene.globe.tileCacheSize = 150;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 300_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30_000_000;
 
@@ -458,20 +459,24 @@ export function GlobeView({
 
     let disposed = false;
     let sectorCleanup: (() => void) | undefined;
-    mountSectors(viewer, {
-      onHover: (hover) => hoverRef.current?.(hover),
-      onSelect: (place) => selectRef.current?.(place),
-    })
-      .then((cleanup) => {
-        if (disposed) {
-          cleanup();
-          return;
-        }
-        sectorCleanup = cleanup;
-        viewer.scene.requestRender();
-        window.setTimeout(() => viewer.scene.requestRender(), 700);
+    // Let the globe texture and first frame paint before fetching/adding the
+    // region and traverse entity layer.
+    const sectorTimer = window.setTimeout(() => {
+      mountSectors(viewer, {
+        onHover: (hover) => hoverRef.current?.(hover),
+        onSelect: (place) => selectRef.current?.(place),
       })
-      .catch((err) => console.error("[globe] sector layer failed", err));
+        .then((cleanup) => {
+          if (disposed) {
+            cleanup();
+            return;
+          }
+          sectorCleanup = cleanup;
+          viewer.scene.requestRender();
+          window.setTimeout(() => viewer.scene.requestRender(), 700);
+        })
+        .catch((err) => console.error("[globe] sector layer failed", err));
+    }, 350);
 
     const readyTimer = window.setTimeout(() => {
       viewer.scene.requestRender();
@@ -490,6 +495,7 @@ export function GlobeView({
       viewer.camera.changed.removeEventListener(updateZoomLimit);
       viewer.camera.changed.removeEventListener(updateAtmosphere);
       updateAtmosphereRef.current = null;
+      window.clearTimeout(sectorTimer);
       surfaceHandler.destroy();
       beaconRef.current = null;
       sectorCleanup?.();

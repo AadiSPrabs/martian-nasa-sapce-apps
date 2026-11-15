@@ -532,7 +532,7 @@ export async function mountSectors(
 
   handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
     const now = performance.now();
-    if (now - lastMove < 32) return;
+    if (now - lastMove < 55) return;
     lastMove = now;
 
     const place = hitTest(movement.endPosition);
