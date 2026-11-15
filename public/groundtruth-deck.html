@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Groundtruth — NASA Space Apps 2026 — 7-slide deck</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0b0e14; color: #f2ede4; font-family: Georgia, 'Times New Roman', serif; }
+  .deck { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  .hint { text-align: center; font-family: system-ui, sans-serif; font-size: 13px; color: #9a8f7a; margin-bottom: 20px; }
+  .slide { background: linear-gradient(160deg, #1a1210 0%, #241610 55%, #120d0b 100%);
+    border: 1px solid #c96f2e; border-radius: 14px; padding: 56px 60px;
+    min-height: 540px; margin-bottom: 28px; display: flex; flex-direction: column; justify-content: center; }
+  .kicker { font-family: system-ui, sans-serif; letter-spacing: .22em; text-transform: uppercase;
+    font-size: 12px; color: #e07840; margin-bottom: 18px; }
+  h1 { font-size: 56px; line-height: 1.05; font-weight: 600; }
+  h2 { font-size: 38px; line-height: 1.15; font-weight: 600; margin-bottom: 20px; }
+  p, li { font-size: 20px; line-height: 1.55; color: #e8e0d2; }
+  p + p { margin-top: 14px; }
+  ul { list-style: none; }
+  li { padding-left: 26px; position: relative; margin-bottom: 12px; }
+  li::before { content: "◆"; position: absolute; left: 0; color: #e07840; font-size: 13px; top: 6px; }
+  .sub { font-family: system-ui, sans-serif; font-size: 15px; color: #b7ab97; margin-top: 26px; line-height: 1.6; }
+  .stat { display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap; }
+  .stat div { border: 1px solid #c96f2e; border-radius: 10px; padding: 16px 20px; min-width: 180px; }
+  .stat b { display: block; font-size: 30px; color: #f5a56b; font-family: system-ui, sans-serif; }
+  .stat span { font-family: system-ui, sans-serif; font-size: 13px; color: #b7ab97; }
+  .num { font-family: system-ui, sans-serif; font-size: 13px; color: #9a8f7a; margin-top: 28px; }
+  code { font-size: 15px; color: #f5a56b; word-break: break-all; }
+  @media print { body { background: #fff; } .hint { display: none; } .slide { page-break-after: always; margin: 0; border-radius: 0; min-height: 90vh; } }
+</style>
+</head>
+<body>
+<div class="deck">
+<p class="hint">7 slides · NASA Space Apps 2026 · Use arrow keys / scroll to move · Print to PDF for upload</p>
+
+<section class="slide">
+  <p class="kicker">NASA Space Apps Challenge 2026 · Martian Map</p>
+  <h1>Groundtruth</h1>
+  <p style="margin-top:16px; font-size:24px;">A Mars orbital atlas with an EVA planner that works anywhere on the surface — and tells you if the crew makes it back.</p>
+  <p class="sub">Challenge: Interplanetary Survival Guide: Martian Map · Virtual Universal Event<br>
+  Aadi Sunil Prabhu · Dayananda Sagar University · Vite + React + CesiumJS app — <code>pnpm install</code>, <code>pnpm dev</code>.</p>
+  <p class="num">1 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">The problem</p>
+  <h2>The first astronaut on Mars needs a survival map, not a tourist map.</h2>
+  <p>An EVA is a life-support calculation. Pick the wrong route and power, radiation dose or slope runs out kilometres from shelter — and most Mars maps only show you where things are.</p>
+  <p>Groundtruth answers the question that matters on the surface: <b>where do we go, how do we get there, and can we get back alive?</b> From orbit, down to the rover traverse.</p>
+  <p class="num">2 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">Orbit — real NASA data</p>
+  <h2>A real globe, not a picture of one.</h2>
+  <ul>
+    <li>3D Mars globe (Cesium, Mars ellipsoid) with a 4K MOLA-relief base, streamed Mars Trek tiles at 232&nbsp;m/px, and true HiRISE detail over Gale.</li>
+    <li>Search 1,794 named features, 34 regions, 30 quadrangles and 8 landing sites. Click any point to fly in.</li>
+    <li>Lighting follows the real Mars sun — a Mars24 model drives the terminator from the current UTC instant.</li>
+  </ul>
+  <p class="sub">Sources: NASA/JPL Mars Trek (Viking MDIM21, MOLA/HRSC, HiRISE, regions, nomenclature, landing sites, traverses) · NASA GISS Mars24 · USGS Astrogeology.</p>
+  <p class="num">3 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">EVA anywhere</p>
+  <h2>Pick any point on Mars. Plan a real traverse.</h2>
+  <p>Press EVA, pick any point, search a feature, or enter coordinates. Groundtruth fetches a local 200&nbsp;m MOLA/HRSC DEM window, builds a local map and an A* rover network, and generates terrain-grounded objectives.</p>
+  <div class="stat">
+    <div><b>200 m</b><span>MOLA/HRSC DEM, anywhere</span></div>
+    <div><b>1 m</b><span>HiRISE terrain at Gale</span></div>
+    <div><b>25–200 km</b><span>Recon range selector</span></div>
+  </div>
+  <p class="sub">Universal layers — Optical, Terrain, Relief, Slope, Geology — work at Gale and at arbitrary sites. Gale is the 1&nbsp;m field showcase: real Vera Rubin Ridge / Hematite objectives and sample stops.</p>
+  <p class="num">4 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">The planner — consequences, not lines</p>
+  <h2>Every plan gets checked before it gets driven.</h2>
+  <ul>
+    <li>Choose an objective, pack equipment, compare <b>Fastest / Safest / Most science</b> rover plans.</li>
+    <li>Power, radiation dose (0.026&nbsp;mSv/h baseline) and slope are checked per plan — 25° is a hard no-go.</li>
+    <li>Run the traverse leg by leg, sample or abort, and close the EVA with a graded field log.</li>
+  </ul>
+  <p class="sub">Loadout matters: pack mass changes rover power, and tools gate what you can sample. Solar-event ×3 and a −35% radiation vest are modelled as scenarios, not a live feed.</p>
+  <p class="num">5 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">It runs — measured, not claimed</p>
+  <h2>Built to load fast and say what grade the data is.</h2>
+  <p>The data grade is always visible: <code>MOLA 200 m · RECON</code> outside Gale, 1&nbsp;m field data inside it. It plans regional rover routes, not boulder-scale walking routes — and says so.</p>
+  <div class="stat">
+    <div><b>~2.8 s</b><span>First globe canvas</span></div>
+    <div><b>~1.8 s</b><span>EVA picker</span></div>
+    <div><b>~7 s</b><span>Olympus terrain + routes</span></div>
+  </div>
+  <p class="sub">Measured in a headless production build. Cesium runs render-on-demand; the EVA feature is code-split and loads on demand.</p>
+  <p class="num">6 / 7</p>
+</section>
+
+<section class="slide">
+  <p class="kicker">Try it · Sources · Honesty</p>
+  <h2>Open it and drive.</h2>
+  <p>Repo: <code>github.com/AadiSPrabs/martian-nasa-sapce-apps</code><br>
+  Run it: <code>pnpm install</code> then <code>pnpm dev</code> (Node 20+, pnpm 11+) — production build is a static site.</p>
+  <p class="sub">Data: NASA/JPL Mars Trek · HiRISE (NASA/JPL/UArizona) · MOLA/HRSC blend · USGS Astrogeology SIM3292 geology · NASA GISS Mars24 · MSL REMS weather · MSL RAD radiation baseline (Hassler et al., Science 2014).<br>
+  AI disclosure: Groundtruth was built with an AI coding agent; all data sources and limitations are documented in the repo README. The repo also contains the earlier single-file Martian Map, built with Muse and independently verified hands-on by a second AI agent, Instinct.<br>
+  Honest limits: the globe is a smooth ellipsoid with imagery, not a global 3D terrain mesh; anywhere means reconnaissance at 200&nbsp;m — it does not resolve boulders outside high-res sites; radiation, rover power and thermal values are planning heuristics, not measured crew telemetry.</p>
+  <p class="num">7 / 7</p>
+</section>
+
+</div>
+</body>
+</html>
