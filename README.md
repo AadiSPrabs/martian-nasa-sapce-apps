@@ -93,6 +93,16 @@ python scripts/bake-relief.py
 - **Generated objectives** for arbitrary sites come from the DEM itself: local high point and steepest sampled slope break. Gale uses the real Vera Rubin Ridge and Hematite Hotspot waypoints. Generated objectives are labelled as generated.
 - **The EVA loop** is: site → objective → loadout → three rover plans → run leg-by-leg → sample/abort → graded field log. The loadout affects mass/power and tool gating (drill for rock samples, bags for samples).
 
+## Performance
+
+- The EVA feature is code-split; Leaflet, GeoTIFF, and the Traverse UI load on demand. The site picker stays eager and the EVA chunk is prefetched after orbit settles.
+- The 236 kB Mars search index loads on first focus, not at startup.
+- Cesium runs render-on-demand: idle GPU work stops, and camera/hover/label/sun changes explicitly request frames.
+- Globe tessellation is tuned (`maximumScreenSpaceError` 0.9, tile cache 150); the sector entity layer is deferred until after first paint.
+- Recon terrain and range windows are fetched per site and cached in memory. Range and layer data load only when selected.
+
+Measured in a headless production build: first globe canvas ~2.8 s, EVA picker ~1.8 s, Olympus terrain+routes ~7 s. Hardware-accelerated browsers are faster; global terrain fetch is network-bound.
+
 ## How it maps to the brief
 
 | Brief ask | Implementation |
@@ -107,7 +117,7 @@ python scripts/bake-relief.py
 | Route map | Three rover plans with distance, time, power, dose, max slope, turn-back |
 | Point-of-view imagery | Real Curiosity POV at Gale field stops |
 | Rover / robotic support | Recon rover is the default anywhere; regional route, no boulder-scale claim |
-| Inspiration from other missions | Google Maps, Death Stranding, Subnautica, Pacific Drive, Kerbal (see `PLAN-V3.md`) |
+| Inspiration from other missions | Google Maps, Death Stranding, Subnautica, Pacific Drive, Kerbal |
 
 ## Still open
 
@@ -141,4 +151,4 @@ python scripts/bake-relief.py
 
 ## AI disclosure
 
-Built with an AI coding agent using the project plan in `PLAN.md` and the EVA redesign in `PLAN-V3.md`; all data sources and limitations are documented above.
+Built with an AI coding agent; all data sources and limitations are documented above.
