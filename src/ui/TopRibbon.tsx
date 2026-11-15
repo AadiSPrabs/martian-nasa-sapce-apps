@@ -49,9 +49,6 @@ export function TopRibbon({
         <button className="tab active" type="button">
           Explore
         </button>
-        <button className="tab" type="button" onClick={onPlan}>
-          Plan
-        </button>
       </nav>
 
       <span className="divider" />
@@ -98,7 +95,7 @@ export function TopRibbon({
 
       <button className="plan-btn" type="button" onClick={onPlan}>
         <Route size={14} strokeWidth={1.7} />
-        Plan traverse
+        EVA
       </button>
       <button className="ghost" type="button" onClick={onMissions}>
         <Flag size={14} strokeWidth={1.6} />

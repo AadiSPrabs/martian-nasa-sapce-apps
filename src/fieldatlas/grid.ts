@@ -6,6 +6,7 @@ export type NavGrid = {
   bbox: [number, number, number, number];
   cellMx: number;
   cellMy: number;
+  step: number;
   elevation: Float32Array;
   slope: Float32Array;
   blocked: Uint8Array;
@@ -13,29 +14,34 @@ export type NavGrid = {
 
 export type LonLat = { lon: number; lat: number };
 
-const STEP = 4; // 4 DEM pixels ≈ 23.6 m
+const DEFAULT_STEP = 4; // 4 DEM pixels ≈ 23.6 m on Gale
 const MAX_SLOPE = 25;
 
-const gridCache = new WeakMap<Dem, NavGrid>();
+const gridCache = new WeakMap<Dem, Map<number, NavGrid>>();
 
-export function getNavGrid(dem: Dem): NavGrid {
-  const cached = gridCache.get(dem);
+export function getNavGrid(dem: Dem, step = DEFAULT_STEP): NavGrid {
+  let perDem = gridCache.get(dem);
+  if (!perDem) {
+    perDem = new Map();
+    gridCache.set(dem, perDem);
+  }
+  const cached = perDem.get(step);
   if (cached) return cached;
 
   const { bbox, width: dw, height: dh, pixelSizeM } = dem.meta;
-  const width = Math.floor(dw / STEP);
-  const height = Math.floor(dh / STEP);
+  const width = Math.floor(dw / step);
+  const height = Math.floor(dh / step);
   const elevation = new Float32Array(width * height);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let sum = 0;
       let count = 0;
-      for (let sy = 0; sy < STEP; sy++) {
-        const row = y * STEP + sy;
+      for (let sy = 0; sy < step; sy++) {
+        const row = y * step + sy;
         if (row >= dh) continue;
-        for (let sx = 0; sx < STEP; sx++) {
-          const col = x * STEP + sx;
+        for (let sx = 0; sx < step; sx++) {
+          const col = x * step + sx;
           if (col >= dw) continue;
           sum += dem.data[row * dw + col];
           count++;
@@ -45,8 +51,8 @@ export function getNavGrid(dem: Dem): NavGrid {
     }
   }
 
-  const cellMx = pixelSizeM[0] * ((bbox[2] - bbox[0]) / width) / ((bbox[2] - bbox[0]) / dw);
-  const cellMy = pixelSizeM[1] * ((bbox[3] - bbox[1]) / height) / ((bbox[3] - bbox[1]) / dh);
+  const cellMx = pixelSizeM[0] * (dw / width);
+  const cellMy = pixelSizeM[1] * (dh / height);
   const slope = new Float32Array(width * height);
   const blocked = new Uint8Array(width * height);
 
@@ -66,8 +72,18 @@ export function getNavGrid(dem: Dem): NavGrid {
     }
   }
 
-  const grid = { width, height, bbox, cellMx, cellMy, elevation, slope, blocked };
-  gridCache.set(dem, grid);
+  const grid = {
+    width,
+    height,
+    bbox,
+    cellMx,
+    cellMy,
+    step,
+    elevation,
+    slope,
+    blocked,
+  };
+  perDem.set(step, grid);
   return grid;
 }
 
@@ -89,8 +105,15 @@ function cellCenter(grid: NavGrid, x: number, y: number): LonLat {
   };
 }
 
-function nearestOpen(grid: NavGrid, x: number, y: number): { x: number; y: number } {
-  if (!grid.blocked[y * grid.width + x]) return { x, y };
+function nearestOpen(
+  grid: NavGrid,
+  x: number,
+  y: number,
+  maxSlope = MAX_SLOPE,
+): { x: number; y: number } {
+  if (!grid.blocked[y * grid.width + x] && grid.slope[y * grid.width + x] <= maxSlope) {
+    return { x, y };
+  }
   for (let r = 1; r <= 8; r++) {
     let best: { x: number; y: number; s: number } | null = null;
     for (let dy = -r; dy <= r; dy++) {
@@ -100,7 +123,7 @@ function nearestOpen(grid: NavGrid, x: number, y: number): { x: number; y: numbe
         const ny = y + dy;
         if (nx < 0 || ny < 0 || nx >= grid.width || ny >= grid.height) continue;
         const idx = ny * grid.width + nx;
-        if (grid.blocked[idx]) continue;
+        if (grid.blocked[idx] || grid.slope[idx] > maxSlope) continue;
         if (!best || grid.slope[idx] < best.s) best = { x: nx, y: ny, s: grid.slope[idx] };
       }
     }
@@ -163,11 +186,14 @@ export function findPath(
   grid: NavGrid,
   start: LonLat,
   goal: LonLat,
+  options: { maxSlope?: number; slopeWeight?: number } = {},
 ): LonLat[] | null {
+  const maxSlope = options.maxSlope ?? MAX_SLOPE;
+  const slopeWeight = options.slopeWeight ?? 1;
   const s = cellFor(grid, start);
   const g = cellFor(grid, goal);
-  const startCell = nearestOpen(grid, s.x, s.y);
-  const goalCell = nearestOpen(grid, g.x, g.y);
+  const startCell = nearestOpen(grid, s.x, s.y, maxSlope);
+  const goalCell = nearestOpen(grid, g.x, g.y, maxSlope);
   const startIdx = startCell.y * grid.width + startCell.x;
   const goalIdx = goalCell.y * grid.width + goalCell.x;
   if (startIdx === goalIdx) return [cellCenter(grid, goalCell.x, goalCell.y)];
@@ -219,8 +245,9 @@ export function findPath(
       if (grid.blocked[ni]) continue;
 
       const slope = grid.slope[ni];
+      if (slope > maxSlope) continue;
       const dist = factor * ((grid.cellMx + grid.cellMy) / 2);
-      let penalty = 1 + 3 * (slope / 10) ** 2;
+      let penalty = 1 + 3 * slopeWeight * (slope / 10) ** 2;
       if (slope > 15) penalty *= 1.5;
       if (slope > 20) penalty *= 2;
       const tentative = gScore[idx] + dist * penalty;

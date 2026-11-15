@@ -19,6 +19,8 @@ type GlobeViewProps = {
   onHover?: (hover: HoverInfo | null) => void;
   onSelect?: (place: GlobePlace) => void;
   onViewer?: (viewer: Cesium.Viewer | null) => void;
+  onSurfaceClick?: (lon: number, lat: number) => void;
+  site?: { lon: number; lat: number; name: string };
   sunOn?: boolean;
 };
 
@@ -27,6 +29,8 @@ export function GlobeView({
   onHover,
   onSelect,
   onViewer,
+  onSurfaceClick,
+  site,
   sunOn = true,
 }: GlobeViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -34,7 +38,10 @@ export function GlobeView({
   const viewerRef = useRef<Cesium.Viewer | null>(null);
   const sunOnRef = useRef(sunOn);
   const updateAtmosphereRef = useRef<(() => void) | null>(null);
+  const surfaceClickRef = useRef(onSurfaceClick);
+  const beaconRef = useRef<Cesium.Entity | null>(null);
   sunOnRef.current = sunOn;
+  surfaceClickRef.current = onSurfaceClick;
   const readyRef = useRef(onReady);
   const hoverRef = useRef(onHover);
   const selectRef = useRef(onSelect);
@@ -214,6 +221,49 @@ export function GlobeView({
     ];
 
     viewer.scene.postProcessStages.fxaa.enabled = true;
+
+    const beacon = viewer.entities.add({
+      id: "astronaut-beacon",
+      position: Cesium.Cartesian3.fromDegrees(
+        site?.lon ?? 137.39,
+        site?.lat ?? -4.68,
+        900,
+        MARS,
+      ),
+      point: {
+        pixelSize: 11,
+        color: Cesium.Color.fromCssColorString("#E08A6A"),
+        outlineColor: Cesium.Color.WHITE.withAlpha(0.9),
+        outlineWidth: 2,
+        disableDepthTestDistance: 0,
+      },
+      label: {
+        text: `YOU · ${site?.name ?? "GALE CRATER"}`,
+        font: "500 10px 'IBM Plex Mono', monospace",
+        fillColor: Cesium.Color.WHITE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString("#0b0d0f").withAlpha(0.76),
+        backgroundPadding: new Cesium.Cartesian2(5, 3),
+        pixelOffset: new Cesium.Cartesian2(0, -18),
+        disableDepthTestDistance: 0,
+      },
+    });
+    beaconRef.current = beacon;
+
+    const surfaceHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    surfaceHandler.setInputAction(
+      (movement: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
+        const cartesian = viewer.camera.pickEllipsoid(movement.position, MARS);
+        if (!cartesian) return;
+        const carto = Cesium.Cartographic.fromCartesian(cartesian, MARS);
+        if (!carto) return;
+        surfaceClickRef.current?.(
+          Cesium.Math.toDegrees(carto.longitude),
+          Cesium.Math.toDegrees(carto.latitude),
+        );
+      },
+      Cesium.ScreenSpaceEventType.LEFT_CLICK,
+    );
 
     const imagery = new Cesium.SingleTileImageryProvider({
       url: "/data/globe/mars-viking-relief-4k.jpg",
@@ -440,12 +490,27 @@ export function GlobeView({
       viewer.camera.changed.removeEventListener(updateZoomLimit);
       viewer.camera.changed.removeEventListener(updateAtmosphere);
       updateAtmosphereRef.current = null;
+      surfaceHandler.destroy();
+      beaconRef.current = null;
       sectorCleanup?.();
       viewerRef.current = null;
       viewerCallbackRef.current?.(null);
       if (!viewer.isDestroyed()) viewer.destroy();
     };
   }, []);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const beacon = beaconRef.current;
+    if (!viewer || !beacon || !site) return;
+    beacon.position = new Cesium.ConstantPositionProperty(
+      Cesium.Cartesian3.fromDegrees(site.lon, site.lat, 900, MARS),
+    );
+    if (beacon.label) {
+      beacon.label.text = new Cesium.ConstantProperty(`YOU · ${site.name}`);
+    }
+    viewer.scene.requestRender();
+  }, [site]);
 
   useEffect(() => {
     const viewer = viewerRef.current;

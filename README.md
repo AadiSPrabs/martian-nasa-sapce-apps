@@ -1,6 +1,6 @@
-# Groundtruth — Mars Orbital Atlas
+# Groundtruth — Mars Orbital Atlas + EVA
 
-A Google Earth–style Mars globe with a real field atlas for planning a human surface excursion at Gale Crater. Built for the **NASA Space Apps Challenge 2026** — *Interplanetary Survival Guide: Martian Map*.
+A Google Earth–style Mars globe with a Google Maps–style EVA planner anywhere on the surface. Built for the **NASA Space Apps Challenge 2026** — *Interplanetary Survival Guide: Martian Map*.
 
 ![Mars globe](docs/globe.jpg)
 
@@ -14,17 +14,15 @@ Lighting follows the real Mars sun. A Mars24 solar-position model drives the dir
 
 **Understand.** Each place opens a field card with real NASA imagery, coordinates, data resolution, and a short description. Feature cards use the Mars Trek gazetteer content; landing-site cards identify the mission.
 
-**Plan.** The Gale Crater field atlas combines HiRISE optical imagery, a 1 m DEM, hillshade, slope classes, and USGS geology. It is a **route builder**, not a fixed demo: set a start or target by clicking the map, drop field pins, add catalog science stops, and reorder or remove them. Every edit re-runs A* on a ~24 m navigation grid with a 25° slope no-go and recomputes distance, climb, walk time, radiation dose, turn-back, and the safety envelope.
+**EVA anywhere.** Press **EVA**, pick any point on the globe, search a named feature, or enter coordinates. Groundtruth fetches a local 200 m MOLA/HRSC DEM window, builds a local map and an A* rover network, and generates terrain-grounded field objectives. Gale is the 1 m field showcase: HiRISE terrain, real Vera Rubin/Hematite objectives, and sample stops.
 
-Four presets (Full science, Ridge line, Direct, Rover relay) are starting templates. The plan explicitly models **suit load** (light/standard/heavy), **space weather** (nominal or solar particle event ×3 dose), **thermal window**, and a computed **turn-back point**. **Export brief** writes the current EVA plan as a text briefing. A **Data & methods** sheet lists every layer's source, resolution, and measured/modelled status.
+The planner is a Google Maps loop with consequences: choose an objective, pack equipment, compare **Fastest / Safest / Most science** rover plans, check power/dose/slope, then run the traverse leg by leg and close the EVA with a graded field log.
 
-![Data and methods](docs/data.jpg)
+![EVA field planner at Gale](docs/traverse.jpg)
 
-![Gale field atlas](docs/atlas.jpg)
+**Recon rover anywhere.** Outside Gale, the planner uses the global 200 m MOLA/HRSC terrain and shows `MOLA 200 m · RECON`. It plans regional rover routes, not boulder-scale walking routes — the data grade is always visible. Landing sites, Olympus, Valles, Hellas, Elysium, or any clicked point all work.
 
-**Walk.** Field mode turns the plan into leg cards with bearing, distance, leg time, slope, EVA clock, dose, and the real Mastcam/Navcam view of the next stop.
-
-![Field mode](docs/walk.jpg)
+![Recon planner at Olympus Mons](docs/recon.jpg)
 
 ## Run it
 
@@ -51,20 +49,22 @@ Requirements: Node 20+ and pnpm 11+.
 | Layer | Source | Resolution |
 |---|---|---|
 | Global Mars basemap | NASA/JPL Mars Trek — Viking MDIM21 colour mosaic | 232 m/px; sharpened 4K static |
+| Global terrain anywhere | Mars Trek MOLA/HRSC blended DEM | 200 m/px, Float32 GeoTIFF window |
+| Recon local basemap | Mars Trek MOLA/HRSC colour shaded relief | 200 m/px |
 | Relief shading | NASA/JPL/USGS MOLA/HRSC blended shade | 200 m/px, baked into the 4K base |
 | Starfield | Procedural, deterministic | 170 distant points + 11 brighter lights |
 | Sun position | NASA GISS Mars24 (Allison & McEwen 2000) | real-time subsolar point |
 | Regional globe LOD | Mars Trek `exportImage` tiles | 512 px, levels 5–9 |
-| Gale globe + atlas | NASA/JPL/UArizona HiRISE mosaic via Mars Trek | native HiRISE, streamed |
-| Gale terrain | NASA/JPL/USGS Gale DEM via Mars Trek | ~5.9 m/px exported grid |
-| Hillshade / slope | Derived from the DEM | 5.9 m/px |
+| Gale field terrain | NASA/JPL/UArizona HiRISE stereo DEM via Mars Trek | 1 m source · 5.9 m grid |
+| Gale field imagery | NASA/JPL/UArizona HiRISE mosaic via Mars Trek | native HiRISE |
+| Hillshade / slope | Derived from the active DEM | 5.9 m (Gale) / 200 m (recon) |
 | Geology | USGS Astrogeology `SIM3292_Global_Geology` | regional |
 | Regions / quadrangles | NASA Mars Trek `mars_regions`, `mc5m_quadsdd_dense` | vector |
 | Named features | IAU/USGS Gazetteer via Mars Trek | 1,794 points |
 | Landing sites / traverses | NASA/JPL Mars Trek | vector |
 | Weather | NASA/JPL-Caltech/CAB MSL REMS | latest sol |
 
-Core UI and the Gale field data are baked locally under `public/data` and committed with the repo. Globe regional detail is streamed from Mars Trek on demand; the 4K base and all Gale assets remain available if that stream is unavailable. The Cesium runtime is generated from `node_modules` at dev/build time.
+Gale field data is baked under `public/data` and committed. Recon terrain and imagery are fetched on demand from Mars Trek for the selected site. The Cesium runtime is generated from `node_modules` at dev/build time.
 
 ### Regenerate data
 
@@ -84,45 +84,45 @@ python scripts/bake-relief.py
 - **Sector hit-testing** is done in JavaScript: the cursor ray is intersected with the globe, then tested against the real region polygons. This avoids relying on Cesium polygon fill/pick behaviour on a custom ellipsoid. Region outlines render as Cesium polygon outlines only while hovered or selected.
 - **Globe LOD** uses a 4K static base, 512 px `exportImage` tiles from Mars Trek at levels 5–9, and a Gale HiRISE layer from level 8. The zoom controller tightens the minimum altitude over Gale and blocks over-zoom elsewhere.
 - **Sky and sun** use a deterministic sparse starfield (no cubemap seams); the Mars24 algorithm drives a directional light and a sun sprite from the live subsolar point, with a delayed re-apply to beat Cesium's first-frame light uniform. A screen-space atmosphere rim is scaled from the projected globe radius. The **Sun** tool turns lighting off for an evenly lit globe.
-- **The field atlas** is Leaflet with `L.CRS.EPSG4326`, a HiRISE image overlay, DEM-derived hillshade/slope, and a custom route strip. The planner edits a `WaypointData[]` and sends it through the same A* pipeline on every change.
-- **Routing** is A* on a ~24 m grid built from the 1 m DEM. Slope cost rises quadratically above 10°, cells above 25° are blocked, and the path is sampled back onto the DEM for distance, climb, slope, and walk time.
-- **Route metrics** use Mars radius 3,389.5 km for distance, the exported DEM for elevation and slope, a Tobler-style suit-speed model, a 10 min/hour rest allowance, and a 0.026 mSv/hour radiation planning rate derived from the MSL RAD surface baseline.
-- **The safety envelope** is a planning model, not a flight rule: 6 h EVA, 0.25 mSv per EVA mission rule, 25° slope no-go, and a 09:00–16:00 LMST thermal window. It computes a turn-back distance, a suit-load speed factor, and a solar-event dose scenario.
+- **Site selection** is global: a Cesium click, named feature, landing site, or coordinate becomes the astronaut site. The beacon moves there; no Plan tab.
+- **Recon terrain** is fetched per site: a 512² Float32 GeoTIFF from Mars Trek's MOLA/HRSC 200 m DEM, plus a MOLA/HRSC colour-shade image. `geotiff.js` parses it in the browser; results are cached by site. Gale uses the baked 1 m DEM and HiRISE.
+- **Rover routing** runs A* on a downsampled navigation grid built from whichever DEM is active. Fastest, Safest (lower slope cap), and Most science (detour via the second generated target) use different cost/constraint profiles. Rover time adds a slope-dependent speed and dwell; power is a distance/mass model; dose is time × 0.026 mSv/h.
+- **Generated objectives** for arbitrary sites come from the DEM itself: local high point and steepest sampled slope break. Gale uses the real Vera Rubin Ridge and Hematite Hotspot waypoints. Generated objectives are labelled as generated.
+- **The EVA loop** is: site → objective → loadout → three rover plans → run leg-by-leg → sample/abort → graded field log. The loadout affects mass/power and tool gating (drill for rock samples, bags for samples).
 
 ## How it maps to the brief
 
 | Brief ask | Implementation |
 |---|---|
-| A map, tool, or interface for a surface exploration mission | Editable Gale route builder + full-screen Walk mode |
-| Science goals and a chosen location | Hematite Ridge, Gale Crater: ridge layering, hematite sample, dune-margin survey |
-| At least three kinds of data | Four measured families: optical (HiRISE), topographic (DEM/slope), geologic (USGS), atmospheric (REMS) |
-| Radiation / space weather | MSL RAD surface baseline; nominal vs solar-particle-event ×3 scenario |
-| Suit and equipment mobility | Light / standard / heavy suit load; Tobler-based speed model; 4 crew, 2 suit pairs |
-| Thermal environment | REMS min/max and 09:00–16:00 LMST window |
-| Obstacles and safe routing | A* slope cost, 25° hard no-go, slope overlay, max-slope reporting |
-| Route map | Map line, leg list, elevation profile, turn-back marker |
-| Point-of-view imagery | Real Curiosity Mastcam/Navcam images at stops |
-| Rover / robotic support | Rover-relay plan; rover repositions to carry tools and samples |
-| Inspiration from other missions | Apollo LRV traverse planning, Mars Trek, LROC layered products (documented in Data & methods) |
+| A map, tool, or interface for a surface exploration mission | Any-site EVA planner: globe site picker → local map → rover plan → run/debrief |
+| Science goals and a chosen location | Gale: Vera Rubin Ridge / Hematite Hotspot; arbitrary sites: generated high-point and slope-break objectives |
+| At least three kinds of data | Global 200 m DEM, Viking optical basemap, MOLA shaded relief, Gale HiRISE optical, REMS weather |
+| Radiation / space weather | Solar-event ×3 toggle; radiation vest −35%; 0.25 mSv EVA rule |
+| Suit and equipment mobility | Pack mass changes rover power; drill/spectrometer/sample-bag tool gating; spare O2/battery |
+| Thermal environment | REMS min/max; thermal shell item |
+| Obstacles and safe routing | A* slope cost, 25° hard no-go, lower-slope “Safest” profile |
+| Route map | Three rover plans with distance, time, power, dose, max slope, turn-back |
+| Point-of-view imagery | Real Curiosity POV at Gale field stops |
+| Rover / robotic support | Recon rover is the default anywhere; regional route, no boulder-scale claim |
+| Inspiration from other missions | Google Maps, Death Stranding, Subnautica, Pacific Drive, Kerbal (see `PLAN-V3.md`) |
 
 ## Still open
 
-- **Rock-scale obstacles.** The A* grid is ~24 m; boulders and small scarps are not segmented as collision geometry.
-- **Global 3D terrain.** The globe is a smooth ellipsoid; a local Gale heightmap is the deferred next step.
-- **Full atmospheric scattering.** The current limb is a screen-space rim, not a radiative-transfer Mars atmosphere.
-- **Spatial thermal/radiation rasters.** Thermal is point weather and radiation is a route model, not a measured global raster.
-- **Real-time space weather feed.** The solar-event multiplier is a scenario, not a live NOAA/NASA space-weather subscription.
-- **Per-crew task assignment.** The app models two suit pairs but does not assign individual tasks or roles.
+- **Rock-scale obstacles.** Recon is 200 m; Gale is 1 m. Neither is a segmented boulder collision map.
+- **1 m terrain everywhere.** Public global data is 200 m; only featured sites get field-grade detail.
+- **Full rover systems.** Cargo, forward caches, repairs, and long campaigns are P1.
+- **Science contracts/unlocks.** The current loop has generated objectives and a grade, not yet a full contract board.
+- **Live space weather.** Solar events are scenarios, not a real-time feed.
+- **Per-crew task assignment.** Pairs are modelled, not individually tasked.
 
 ## Honest limits
 
-- The globe is a **smooth ellipsoid with imagery**, not a global 3D terrain mesh. A local Gale 3D heightmap is a deferred post-core add; the hooks are documented in `PLAN.md` §8.9.
-- Global imagery is 232 m/px. HiRISE detail exists only at Gale; other regions are reconnaissance. Outside Gale, zoom is capped at **300 km**; inside Gale it goes to **2.5 km**.
-- Globe regional detail is streamed from Mars Trek. Without network, the sharpened 4K base and all baked Gale assets still work, but regional detail falls back to the base resolution.
-- The field-atlas route is **terrain-aware A\*** on a ~24 m planning grid, not a rock-scale obstacle map. Boulders and features smaller than a cell are not resolved; the 1 m HiRISE image is used for human context, not collision geometry.
-- Radiation and thermal values are **planning heuristics** with cited inputs, not measured crew dose or suit thermal simulation.
-- The latest REMS sol in the public API lags the rover's current sol; the app labels the actual sol returned.
-- The app uses the real NASA/JPL content and imagery, but the pressurised-rover base and four-person EVA are a hypothetical mission frame.
+- The globe is a **smooth ellipsoid with imagery**, not a global 3D terrain mesh.
+- **Anywhere means reconnaissance:** the planner fetches a 200 m MOLA/HRSC DEM window and plans a regional rover traverse. It does not resolve boulders or metre-scale scarps outside high-res sites.
+- **Gale means field:** the baked 1 m DEM and HiRISE support detailed sample-stop planning, but the rover energy/dose model is still a planning model.
+- Recon terrain requires network. Gale field data is baked; the global 4K base still renders offline.
+- Radiation, rover power, and thermal values are **planning heuristics**, not measured crew telemetry.
+- The pressurised-rover campaign and four-person crew are a hypothetical mission frame.
 
 ## Credits
 
@@ -133,9 +133,9 @@ python scripts/bake-relief.py
 - USGS Astrogeology Science Center — planetary geologic map.
 - NASA/JPL-Caltech/MSSS — Curiosity Mastcam/Navcam imagery and waypoint content.
 - NASA/JPL-Caltech/CAB — MSL REMS weather.
-- CesiumJS (Apache 2.0), Leaflet (BSD-2-Clause).
+- CesiumJS (Apache 2.0), Leaflet (BSD-2-Clause), geotiff.js (MIT).
 - Radiation baseline: Hassler et al., *Science* (2014), MSL RAD.
 
 ## AI disclosure
 
-Built with an AI coding agent using the project plan in `PLAN.md`; all data sources and limitations are documented above.
+Built with an AI coding agent using the project plan in `PLAN.md` and the EVA redesign in `PLAN-V3.md`; all data sources and limitations are documented above.

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { Viewer } from "cesium";
 
-import { FieldAtlas } from "./fieldatlas/FieldAtlas";
 import { GlobeView } from "./globe/GlobeView";
 import { getMarsSun } from "./globe/mars24";
 import { flyToPlace, setLabelsVisible } from "./globe/sectors";
 import type { GlobePlace, HoverInfo } from "./globe/types";
+import { SitePicker } from "./traverse/SitePicker";
+import { TraverseMode } from "./traverse/TraverseMode";
+import { CURATED_SITES, siteFromPoint, type Site } from "./traverse/terrain";
 import { Controls } from "./ui/Controls";
 import { HoverTooltip } from "./ui/HoverTooltip";
 import { LayersPanel } from "./ui/LayersPanel";
@@ -16,7 +18,10 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [selection, setSelection] = useState<GlobePlace | null>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
-  const [atlasOpen, setAtlasOpen] = useState(false);
+  const [site, setSite] = useState<Site>(CURATED_SITES[0]);
+  const [sitePickerOpen, setSitePickerOpen] = useState(false);
+  const [pickSiteMode, setPickSiteMode] = useState(false);
+  const [evaOpen, setEvaOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
   const [labelsOn, setLabelsOn] = useState(true);
   const [sunOn, setSunOn] = useState(true);
@@ -25,17 +30,50 @@ export default function App() {
   const [viewer, setViewer] = useState<Viewer | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
 
+  const openSite = (next: Site) => {
+    setSite(next);
+    setSelection(null);
+    setSitePickerOpen(false);
+    setPickSiteMode(false);
+    setEvaOpen(true);
+  };
+
   useEffect(() => {
     const id = window.setInterval(() => setSun(getMarsSun()), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!pickSiteMode) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPickSiteMode(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pickSiteMode]);
 
   return (
     <main className="app">
       <GlobeView
         onReady={() => setReady(true)}
         onHover={setHover}
-        onSelect={(place) => setSelection(place)}
+        onSelect={(place) => {
+          if (pickSiteMode) {
+            openSite(siteFromPoint(place.lon, place.lat));
+            return;
+          }
+          setSelection(place);
+        }}
+        onSurfaceClick={(lon, lat) => {
+          if (pickSiteMode) {
+            openSite(siteFromPoint(lon, lat));
+            return;
+          }
+          if (Math.abs(lon - site.lon) < 0.45 && Math.abs(lat - site.lat) < 0.45) {
+            setEvaOpen(true);
+          }
+        }}
+        site={site}
         onViewer={(v) => {
           viewerRef.current = v;
           setViewer(v);
@@ -48,7 +86,7 @@ export default function App() {
           setHover(null);
           if (viewerRef.current) flyToPlace(viewerRef.current, place);
         }}
-        onPlan={() => setAtlasOpen(true)}
+        onPlan={() => setSitePickerOpen(true)}
         onLayers={() => setLayersOpen((v) => !v)}
         labelsOn={labelsOn}
         onLabels={() => {
@@ -58,7 +96,7 @@ export default function App() {
         }}
         sunOn={sunOn}
         onSun={() => setSunOn((value) => !value)}
-        onMissions={() => setAtlasOpen(true)}
+        onMissions={() => setSitePickerOpen(true)}
         onShare={() => {
           navigator.clipboard
             .writeText(window.location.href)
@@ -86,8 +124,8 @@ export default function App() {
           onFly={() => {
             if (viewerRef.current) flyToPlace(viewerRef.current, selection);
           }}
-          canPlan={selection.kind === "landing" && selection.mission === "Curiosity"}
-          onPlan={() => setAtlasOpen(true)}
+          canPlan={selection.kind === "landing" || selection.kind === "feature"}
+          onPlan={() => openSite(siteFromPoint(selection.lon, selection.lat))}
         />
       )}
 
@@ -124,7 +162,32 @@ export default function App() {
 
       {toast && <div className="toast">{toast}</div>}
 
-      {atlasOpen && <FieldAtlas onClose={() => setAtlasOpen(false)} />}
+      {pickSiteMode && (
+        <div className="pick-site-banner">CLICK ANYWHERE ON MARS · ESC TO CANCEL</div>
+      )}
+
+      {sitePickerOpen && (
+        <SitePicker
+          onClose={() => setSitePickerOpen(false)}
+          onSelect={openSite}
+          onPickGlobe={() => {
+            setSitePickerOpen(false);
+            setPickSiteMode(true);
+            setSelection(null);
+          }}
+        />
+      )}
+
+      {evaOpen && (
+        <TraverseMode
+          site={site}
+          onClose={() => setEvaOpen(false)}
+          onChangeSite={() => {
+            setEvaOpen(false);
+            setSitePickerOpen(true);
+          }}
+        />
+      )}
     </main>
   );
 }

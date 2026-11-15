@@ -141,11 +141,11 @@ export function SectorCard({ place, onClose, onFly, onPlan, canPlan }: SectorCar
           <button
             className="btn-primary"
             disabled={!canPlan}
-            title={canPlan ? "Open the Gale field atlas" : "Full EVA planning is available at Gale Crater"}
+            title={canPlan ? "Open the EVA planner" : "EVA planning is available for surface sites"}
             onClick={onPlan}
           >
             <Route size={13} strokeWidth={1.7} />
-            Plan traverse
+            Plan EVA
             <ArrowRight size={13} strokeWidth={1.7} />
           </button>
         </div>

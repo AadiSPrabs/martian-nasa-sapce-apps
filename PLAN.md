@@ -3,6 +3,8 @@
 **Build plan v2 · 14 Nov 2026**
 
 > **Build status:** baseline implemented and production build verified — Cesium Mars globe, sparse starfield, real-time Mars24 sun/terminator with even-light toggle, MOLA relief, sector hover/search, editable Gale A* route builder, safety envelope, Walk mode, and the Orbital UI. The sections below are the design reference and record the decisions that shaped it; 3D terrain remains deferred (§8.9).
+>
+> **v3 direction — 15 Nov 2026:** the Plan tab and the FieldAtlas route-builder flow are **superseded**. The replacement is the gamified astronaut planner in [`PLAN-V3.md`](PLAN-V3.md). Do not extend the old Plan flow; reuse only its data, A* engine, safety math, and POV content.
 
 ---
 
