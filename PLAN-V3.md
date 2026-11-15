@@ -155,7 +155,9 @@ Validated: a 512², 10°×10° DEM export returned `image/tiff`, Float32, 1.05 M
 
 #### Route window
 
-- Destination must lie within the fetched local window (roughly 30 km radius).
+- Destination must lie within the fetched local window.
+- **Range selector (implemented):** 25 / 50 / 100 / 200 km radius. Changing it refetches the DEM, optical/terrain imagery and derived layers; generated objectives are constrained to a playable radius inside the window.
+- **Universal layers (implemented):** Optical, Terrain, Relief, Slope, Geology. Gale substitutes its baked HiRISE/hillshade/slope/geology layers.
 - If the player picks farther, show: `Outside this terrain window — choose a closer target or fetch a wider recon tile.`
 - P1 can stitch multiple windows for a long rover campaign.
 

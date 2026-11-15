@@ -27,6 +27,7 @@ type Waypoint = {
 export async function buildTargets(
   terrain: SiteTerrain,
   site: Site,
+  maxTargetKm = 20,
 ): Promise<Target[]> {
   if (terrain.grade === "field") {
     try {
@@ -63,6 +64,12 @@ export async function buildTargets(
     for (let x = 0; x < meta.width; x += stride) {
       const lon = west + ((x + 0.5) / meta.width) * (east - west);
       const lat = north - ((y + 0.5) / meta.height) * (north - south);
+      const distanceKm =
+        Math.hypot(
+          (lon - site.lon) * 59_274 * Math.cos((site.lat * Math.PI) / 180),
+          (lat - site.lat) * 59_274,
+        ) / 1000;
+      if (distanceKm > maxTargetKm) continue;
       const elev = sampleDem(terrain.dem, lon, lat);
       if (elev != null && elev > high.elev) high = { elev, lon, lat };
       const slope = slopeDem(terrain.dem, lon, lat);

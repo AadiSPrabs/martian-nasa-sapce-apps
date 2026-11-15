@@ -17,7 +17,7 @@ import {
   type RouteProfile,
 } from "./rover";
 import { buildTargets, type Target } from "./targets";
-import { fetchSiteTerrain, type Site, type SiteTerrain } from "./terrain";
+import { fetchSiteTerrain, RECON_RANGES, type Site, type SiteTerrain } from "./terrain";
 import "./traverse.css";
 
 type TraverseModeProps = {
@@ -39,6 +39,14 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
   const [phase, setPhase] = useState<Phase>("plan");
   const [stepIndex, setStepIndex] = useState(0);
   const [sampled, setSampled] = useState(false);
+  const [rangeKm, setRangeKm] = useState(50);
+  const [filters, setFilters] = useState({
+    optical: true,
+    terrain: false,
+    hillshade: false,
+    slope: false,
+    geology: false,
+  });
   const [pickTarget, setPickTarget] = useState(false);
   const pickTargetRef = useRef(pickTarget);
   pickTargetRef.current = pickTarget;
@@ -60,15 +68,17 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
     setLoading(true);
     setError(null);
     setPhase("plan");
+    setTerrain(null);
     setTargets([]);
     setTargetId(null);
     setSampled(false);
     setStepIndex(0);
-    fetchSiteTerrain(site)
+    fetchSiteTerrain(site, rangeKm)
       .then(async (siteTerrain) => {
         if (cancelled) return;
         setTerrain(siteTerrain);
-        const nextTargets = await buildTargets(siteTerrain, site);
+        const targetRadius = siteTerrain.grade === "field" ? 20 : Math.min(25, Math.max(10, rangeKm * 0.4));
+        const nextTargets = await buildTargets(siteTerrain, site, targetRadius);
         if (cancelled) return;
         setTargets(nextTargets);
         setTargetId(nextTargets[0]?.id ?? null);
@@ -84,7 +94,7 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
     return () => {
       cancelled = true;
     };
-  }, [site]);
+  }, [site, rangeKm]);
 
   const totals = useMemo(() => getLoadoutTotals(loadout), [loadout]);
   const target = targets.find((item) => item.id === targetId) ?? targets[0] ?? null;
@@ -108,6 +118,8 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
   const mapEl = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeLayer = useRef<L.LayerGroup | null>(null);
+  const overlaysRef = useRef<Record<string, L.ImageOverlay | null>>({});
+  const fitRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (!mapEl.current || !terrain) return;
@@ -117,14 +129,43 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
       attributionControl: false,
       zoomAnimation: false,
       fadeAnimation: false,
+      zoomSnap: 0.25,
     });
-    L.imageOverlay(terrain.imageUrl, terrain.bounds, {
-      className: "traverse-map-image",
-      interactive: false,
-    }).addTo(map);
-    map.fitBounds(terrain.bounds, { padding: [20, 20] });
+    map.createPane("traverse-terrain");
+    const terrainPane = map.getPane("traverse-terrain");
+    if (terrainPane) terrainPane.style.zIndex = "200";
     mapRef.current = map;
     routeLayer.current = L.layerGroup().addTo(map);
+    L.control
+      .scale({ position: "bottomright", metric: true, imperial: false, maxWidth: 110 })
+      .addTo(map);
+    const center = L.latLng(
+      (terrain.bounds[0][0] + terrain.bounds[1][0]) / 2,
+      (terrain.bounds[0][1] + terrain.bounds[1][1]) / 2,
+    );
+    const zoom =
+      terrain.grade === "field"
+        ? 13
+        : terrain.rangeKm <= 25
+          ? 11
+          : terrain.rangeKm <= 50
+            ? 10
+            : terrain.rangeKm <= 100
+              ? 9
+              : 8;
+    const applyView = () => {
+      if (!mapRef.current) return;
+      map.invalidateSize();
+      map.setView(center, zoom, { animate: false });
+    };
+    fitRef.current = applyView;
+    const resizeObserver = new ResizeObserver(() => applyView());
+    resizeObserver.observe(mapEl.current);
+    const fitTimers = [
+      window.setTimeout(applyView, 180),
+      window.setTimeout(applyView, 700),
+      window.setTimeout(applyView, 1400),
+    ];
     map.on("click", (event: L.LeafletMouseEvent) => {
       if (!pickTargetRef.current) return;
       const elev = sampleDem(terrain.dem, event.latlng.lng, event.latlng.lat) ?? 0;
@@ -146,25 +187,55 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
       setTargetId(next.id);
       setPickTarget(false);
     });
-    const timer = window.setTimeout(() => {
-      map.invalidateSize();
-      map.fitBounds(terrain.bounds, { padding: [20, 20] });
-      map.setZoom(Math.min(13, map.getZoom() + 0.8), { animate: false });
-    }, 350);
     return () => {
-      window.clearTimeout(timer);
+      fitTimers.forEach((timer) => window.clearTimeout(timer));
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
       routeLayer.current = null;
+      overlaysRef.current = {};
     };
   }, [terrain]);
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !terrain) return;
+    const configs: Array<[string, string, boolean, number]> = [
+      ["optical", terrain.layers.optical, filters.optical, 1],
+      ["terrain", terrain.layers.terrain, filters.terrain, 0.58],
+      ["hillshade", terrain.layers.hillshade, filters.hillshade, 0.42],
+      ["geology", terrain.layers.geology, filters.geology, 0.56],
+      ["slope", terrain.layers.slope, filters.slope, 0.68],
+    ];
+    for (const [name, url, active, opacity] of configs) {
+      if (!url) continue;
+      let overlay = overlaysRef.current[name] ?? null;
+      if (active && !overlay) {
+        overlay = L.imageOverlay(url, terrain.bounds, {
+          className: "traverse-map-image",
+          pane: "traverse-terrain",
+          interactive: false,
+          opacity,
+        }).addTo(map);
+        overlaysRef.current[name] = overlay;
+        const element = overlay.getElement();
+        if (element) {
+          element.addEventListener("load", () => fitRef.current(), { once: true });
+        }
+      } else if (!active && overlay) {
+        map.removeLayer(overlay);
+        overlaysRef.current[name] = null;
+      } else if (overlay) {
+        overlay.setOpacity(opacity);
+      }
+    }
+  }, [terrain, filters]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     const layer = routeLayer.current;
     if (!map || !layer || !terrain) return;
-    layer.clearLayers();
-    L.marker([site.lat, site.lon], {
+    layer.clearLayers();    L.marker([site.lat, site.lon], {
       interactive: false,
       icon: L.divIcon({
         className: "",
@@ -197,12 +268,6 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
           lineCap: "round",
         },
       ).addTo(layer);
-    }
-    if (route && route.points.length > 1) {
-      const routeBounds = L.latLngBounds(
-        route.points.map((point) => [point.lat, point.lon] as [number, number]),
-      );
-      map.fitBounds(routeBounds, { padding: [50, 50], maxZoom: 13 });
     }
   }, [terrain, targets, routes, route, site, target]);
 
@@ -249,10 +314,54 @@ export function TraverseMode({ site, onClose, onChangeSite }: TraverseModeProps)
                 <small>{terrain.note}</small>
               </div>
 
+              <div className="traverse-range">
+                <span>RANGE</span>
+                {terrain.grade === "recon" ? (
+                  RECON_RANGES.map((km) => (
+                    <button
+                      key={km}
+                      type="button"
+                      className={rangeKm === km ? "active" : ""}
+                      onClick={() => setRangeKm(km)}
+                    >
+                      {km} km
+                    </button>
+                  ))
+                ) : (
+                  <b>FIELD WINDOW</b>
+                )}
+              </div>
+
+              <div className="traverse-filters">
+                {(
+                  [
+                    ["optical", "Optical"],
+                    ["terrain", "Terrain"],
+                    ["hillshade", "Relief"],
+                    ["slope", "Slope"],
+                    ["geology", "Geology"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={filters[key] ? "active" : ""}
+                    onClick={() =>
+                      setFilters((current) => ({
+                        ...current,
+                        [key]: !current[key],
+                      }))
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <div className="traverse-head">
                 <span>OBJECTIVES</span>
                 <div className="traverse-head-actions">
-                  <b>{targets.length} generated</b>
+                  <b>{targets.length} objectives</b>
                   <button
                     type="button"
                     className={pickTarget ? "active" : ""}

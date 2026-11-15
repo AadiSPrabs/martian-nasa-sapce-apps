@@ -20,9 +20,11 @@ The planner is a Google Maps loop with consequences: choose an objective, pack e
 
 ![EVA field planner at Gale](docs/traverse.jpg)
 
-**Recon rover anywhere.** Outside Gale, the planner uses the global 200 m MOLA/HRSC terrain and shows `MOLA 200 m · RECON`. It plans regional rover routes, not boulder-scale walking routes — the data grade is always visible. Landing sites, Olympus, Valles, Hellas, Elysium, or any clicked point all work.
+**Recon rover anywhere.** Outside Gale, the planner uses the global 200 m MOLA/HRSC terrain and shows `MOLA 200 m · RECON`. A **25 / 50 / 100 / 200 km range** selector fetches a wider DEM and basemap window around the astronaut, so the map is never a single tiny tile. Generated objectives are constrained to a playable operating radius inside that window. Universal layers — **Optical, Terrain, Relief, Slope, Geology** — can be combined for route context; they work at Gale and at arbitrary sites.
 
-![Recon planner at Olympus Mons](docs/recon.jpg)
+It plans regional rover routes, not boulder-scale walking routes — the data grade is always visible. Landing sites, Olympus, Valles, Hellas, Elysium, or any clicked point all work.
+
+![Recon planner with a 50 km range window](docs/recon.jpg)
 
 ## Run it
 
@@ -85,7 +87,8 @@ python scripts/bake-relief.py
 - **Globe LOD** uses a 4K static base, 512 px `exportImage` tiles from Mars Trek at levels 5–9, and a Gale HiRISE layer from level 8. The zoom controller tightens the minimum altitude over Gale and blocks over-zoom elsewhere.
 - **Sky and sun** use a deterministic sparse starfield (no cubemap seams); the Mars24 algorithm drives a directional light and a sun sprite from the live subsolar point, with a delayed re-apply to beat Cesium's first-frame light uniform. A screen-space atmosphere rim is scaled from the projected globe radius. The **Sun** tool turns lighting off for an evenly lit globe.
 - **Site selection** is global: a Cesium click, named feature, landing site, or coordinate becomes the astronaut site. The beacon moves there; no Plan tab.
-- **Recon terrain** is fetched per site: a 512² Float32 GeoTIFF from Mars Trek's MOLA/HRSC 200 m DEM, plus a MOLA/HRSC colour-shade image. `geotiff.js` parses it in the browser; results are cached by site. Gale uses the baked 1 m DEM and HiRISE.
+- **Recon terrain** is fetched per site and range: a 512–1024² Float32 GeoTIFF from Mars Trek's MOLA/HRSC 200 m DEM, plus a 1024–2048 px optical/terrain image pair. `geotiff.js` parses it in the browser; results are cached by site and range. Gale uses the baked 1 m DEM and HiRISE.
+- **Universal layers** are generated per window: Viking optical, MOLA colour terrain, MOLA relief, a client-side slope raster derived from the DEM, and USGS geology. Gale substitutes its baked HiRISE/hillshade/slope/geology layers.
 - **Rover routing** runs A* on a downsampled navigation grid built from whichever DEM is active. Fastest, Safest (lower slope cap), and Most science (detour via the second generated target) use different cost/constraint profiles. Rover time adds a slope-dependent speed and dwell; power is a distance/mass model; dose is time × 0.026 mSv/h.
 - **Generated objectives** for arbitrary sites come from the DEM itself: local high point and steepest sampled slope break. Gale uses the real Vera Rubin Ridge and Hematite Hotspot waypoints. Generated objectives are labelled as generated.
 - **The EVA loop** is: site → objective → loadout → three rover plans → run leg-by-leg → sample/abort → graded field log. The loadout affects mass/power and tool gating (drill for rock samples, bags for samples).
